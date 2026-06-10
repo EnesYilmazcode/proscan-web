@@ -1,0 +1,389 @@
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #fcfcfc; /* New light page background */
+    color: #2a343e; /* New dark default text color */
+    line-height: 1.6;
+    user-select: none; /* Disable text selection by default */
+}
+
+.container {
+    width: 90%;
+    max-width: 1100px; /* Adjusted for two-column hero */
+    margin: 0 auto;
+    padding: 10px 0;
+}
+
+/* Navigation Bar */
+header {
+    background: #2a343e; /* Dark navbar */
+    padding: 8px 0; /* Reduced top/bottom padding */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Softer shadow */
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 90%;
+    max-width: 1100px; /* Consistent with .container */
+    margin: 0 auto;
+}
+
+.logo {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: #fcfcfc; /* Light logo text for dark header */
+    text-decoration: none;
+}
+
+.logo img {
+    height: 60px; /* Slightly reduced logo height */
+    vertical-align: middle;
+    margin-right: 25px;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+}
+
+.nav-links a {
+    color: #fcfcfc; /* Light nav links for dark header */
+    text-decoration: none;
+    margin-left: 25px; /* Increased spacing */
+    font-weight: 500;
+}
+
+.nav-links a.cta-button {
+    background: #fcfcfc; /* Light background for nav CTA on dark header */
+    color: #2a343e; /* Dark text for nav CTA on dark header */
+    padding: 8px 18px; /* Adjusted padding */
+    border-radius: 6px;
+    margin-left: 30px; /* More separation */
+}
+.nav-links a.cta-button:hover {
+    background: #e0e0e0; /* Slightly darker light for hover */
+}
+
+/* Hero Section */
+#hero {
+    padding: 80px 0px; /* Adjusted padding */
+    background: #fcfcfc; /* Light hero background */
+    color: #2a343e; /* Dark hero text */
+    /* min-height: auto; Removed as content will define height */
+}
+.hero-content-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px; /* Gap between text and mockup */
+}
+.hero-text {
+    flex-basis: 50%; /* Text takes up half the space */
+    max-width: 500px;
+    text-align: left;
+}
+
+#hero h1 {
+    font-size: 3em; /* Larger hero headline */
+    margin-bottom: 20px;
+    line-height: 1.2;
+    color: #2a343e;
+}
+
+#hero p.subtitle {
+    font-size: 1.2em;
+    margin-bottom: 30px;
+    color: #5a646e; /* Slightly lighter dark for subtitle */
+}
+
+.hero-cta-button {
+    background: #2a343e; /* Dark background */
+    color: #fcfcfc; /* Light text */
+    padding: 12px 28px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 1.1em;
+    font-weight: bold;
+    display: inline-block;
+    transition: background-color 0.3s ease;
+}
+.hero-cta-button:hover {
+    background-color: #4a545e; /* Slightly lighter dark */
+}
+
+.hero-mockup-container {
+    flex-basis: 50%; /* Mockup takes up other half */
+    display: flex;
+    justify-content: center; /* Center mockup if it's narrower */
+    align-items: center;
+}
+
+/* Browser Mockup (styles largely kept, width adjustment might be needed if it breaks layout) */
+.browser-mockup {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* Updated shadow like screenshot */
+    width: 700px;
+    overflow: hidden;
+    user-select: none;
+    /* margin-top: 0; Removed, spacing handled by flex gap */
+}
+
+.browser-header {
+    background: linear-gradient(135deg, #1a2028 0%, #2d3748 100%);
+    padding: 12px; /* Slightly reduced padding */
+    display: flex;
+    align-items: center;
+}
+.browser-dots { display: flex; gap: 6px; margin-right: 12px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot.red { background: #ff5f57; } .dot.yellow { background: #ffbd2e; } .dot.green { background: #28ca41; }
+.address-bar { background: rgba(255, 255, 255, 0.1); border-radius: 5px; height: 28px; flex-grow: 1; display: flex; align-items: center; padding: 0 10px; color: rgba(255, 255, 255, 0.7); font-size: 13px; }
+
+
+.browser-content {
+    padding: 20px; /* Adjusted padding */
+    height: 360px; /* Adjusted height */
+    position: relative;
+    background: #fafafa; /* Slightly off-white for content area */
+    overflow-y: auto; 
+    scrollbar-width: none; 
+    -ms-overflow-style: none; 
+    pointer-events: none; 
+}
+
+.browser-content::-webkit-scrollbar {
+    display: none; 
+}
+
+.sample-page {
+    max-width: 100%; /* Allow it to fill the new smaller browser-content padding */
+    pointer-events: auto; 
+}
+
+/* Proscan Popup (already uses the new color scheme) */
+.proscan-popup {
+    position: absolute;
+    top: 15px; /* Adjusted for new padding */
+    right: 15px; /* Adjusted for new padding */
+    background: #2a343e; 
+    color: #fcfcfc; 
+    border-radius: 10px; /* Slightly smaller radius */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    width: 250px; /* Adjusted width */
+    z-index: 100;
+    pointer-events: auto; 
+    transition: top 0.1s linear; 
+}
+
+.popup-header {
+    background: #2a343e; 
+    color: #fcfcfc; 
+    padding: 12px 15px; /* Adjusted padding */
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    font-size: 15px; /* Adjusted font size */
+}
+
+.popup-header img {
+    height: 24px; /* Adjusted icon size */
+    margin-right: 8px; 
+}
+
+.popup-content {
+    padding: 15px; /* Adjusted padding */
+    text-align: center;
+}
+
+.scan-status {
+    background: #fcfcfc; 
+    color: #2a343e; 
+    padding: 10px 12px; /* Adjusted padding */
+    border-radius: 6px;
+    margin-bottom: 12px; /* Adjusted margin */
+    font-weight: 500;
+    animation: pulse 2s infinite;
+    font-size: 0.9em;
+}
+
+/* New styles for the scraping status container */
+.scraping-status-container {
+    background: #fcfcfc; /* Light background */
+    color: #2a343e; /* Dark text */
+    padding: 8px 10px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    font-weight: 500;
+    font-size: 0.85em;
+    min-height: 1.2em; /* To prevent layout shift when text is empty */
+    text-align: center; /* Ensure text is centered if it wraps */
+    overflow: hidden; /* Added for ellipsis */
+    white-space: nowrap; /* Added for ellipsis */
+    text-overflow: ellipsis; /* Added for ellipsis */
+}
+
+.action-controls {
+    display: flex;
+    justify-content: space-around; 
+    align-items: center;
+    margin-bottom: 0; /* Removed margin as content padding will handle it */
+}
+
+.action-button {
+    background: #fcfcfc; 
+    border-radius: 6px;
+    color: #2a343e; 
+    font-weight: normal; /* Adjusted */
+    font-size: 20px;      /* Adjusted Icon size */
+    cursor: pointer;
+    width: 40px;          /* Adjusted Fixed width */
+    height: 40px;         /* Adjusted Fixed height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+.action-button:hover { background-color: #ededed; }
+.action-button:active { transform: scale(0.95); }
+
+/* Scan Item (within mockup) */
+.scan-item {
+    margin-bottom: 15px; /* Adjusted */
+    padding: 12px; /* Adjusted */
+    border-radius: 6px;
+    background: white;
+    border: 1px solid #eee; /* Softer border */
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-start; 
+    width: auto; /* Let it be natural width within sample-page */
+    /* width: 90%; Removed */
+}
+.scan-item.scanning {
+    border-color: #667eea; /* Using a hero color for scanning */
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+    box-shadow: 0 6px 12px rgba(102, 126, 234, 0.15);
+    transform: translateY(-2px);
+}
+.scan-item.scanning::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1),transparent); animation: shimmer 1.5s ease-in-out;}
+
+.item-emoji { font-size: 2.5rem; margin-right: 12px; flex-shrink: 0; margin-top: 5px; }
+.item-details-wrapper { flex-grow: 1; display: flex; flex-direction: column; }
+.item-title { font-weight: 600; color: #2a343e; margin-bottom: 5px; font-size: 0.95em; }
+.item-description { color: #5a646e; font-size: 0.85em; line-height: 1.4; margin-bottom: 8px; }
+.item-price { font-weight: 700; color: #059669; font-size: 1em; margin-top: auto; }
+.item-button { background: #f0c14b; color: #111; border: 1px solid #a88734; padding: 6px 12px; border-radius: 5px; font-weight: 500; cursor: pointer; margin-top: 8px; font-size: 0.85em; align-self: flex-start; }
+
+/* Features Section */
+#features {
+    padding: 60px 0px;
+    text-align: center;
+    background-color: #f4f7f6; /* Slightly off-white for separation */
+}
+#features h2 {
+    font-size: 2.4em; /* Adjusted */
+    margin-bottom: 15px; /* Reduced */
+    color: #2a343e;
+}
+#features p.section-subtitle {
+    font-size: 1.1em;
+    color: #5a646e;
+    margin-bottom: 50px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    text-align: left;
+}
+.feature-item {
+    background: #fcfcfc; /* Light background for cards */
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.05); /* Softer shadow */
+}
+.feature-item h3 {
+    font-size: 1.5em; /* Adjusted */
+    margin-bottom: 10px;
+    color: #2a343e; /* Dark feature title */
+}
+.feature-item p {
+    color: #5a646e; /* Lighter dark for feature text */
+}
+
+/* CTA Section */
+#cta {
+    background: #fcfcfc; /* Light CTA background */
+    color: #2a343e; /* Dark CTA text */
+    padding: 70px 0px;
+    text-align: center;
+}
+#cta h2 {
+    font-size: 2.4em; /* Adjusted */
+    margin-bottom: 20px;
+}
+#cta p {
+    font-size: 1.1em;
+    margin-bottom: 30px;
+    max-width: 550px;
+    margin-left: auto;
+    margin-right: auto;
+    color: #5a646e;
+}
+.cta-button-large {
+    background: #2a343e; /* Dark background for main CTA button */
+    color: #fcfcfc; /* Light text */
+    padding: 15px 35px; /* Adjusted */
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 1.2em;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    display: inline-block;
+}
+.cta-button-large:hover {
+    background-color: #4a545e; /* Slightly lighter dark */
+}
+
+/* Footer */
+footer {
+    background: #2a343e; /* Dark footer */
+    color: #fcfcfc; /* Light footer text */
+    text-align: center;
+    padding: 30px 0; /* Increased padding */
+    font-size: 0.9em;
+}
+footer p {
+    margin: 0;
+    color: #adb5bd; /* Even lighter for less emphasis */
+}
+
+/* Animation keyframes (pulse, shimmer, scanProgress) remain unchanged */
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
+@keyframes shimmer { 0% { left: -100%; } 100% { left: 100%; } }
+@keyframes scanProgress { 0% { width: 0%; } 100% { width: 100%; } }
+
+/* Re-enable text selection for specific titles and descriptions about the extension */
+#hero h1,
+#hero p.subtitle,
+.feature-item h3,
+.feature-item p,
+#cta h2,
+#cta p {
+    user-select: text;
+}

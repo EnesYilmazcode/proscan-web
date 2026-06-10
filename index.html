@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proscan - Smart Shopping Assistant</title>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <a href="#" class="logo"><img src="/icon128.png" alt="Proscan Logo">Proscan</a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="https://chromewebstore.google.com/detail/proscan-amazon-product-sc/bikgignfnljpbmchlemkbbpboigodgap" class="cta-button">Get Proscan</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="hero">
+            <div class="container hero-content-wrapper">
+                <div class="hero-text">
+                    <h1>Outsmart Your Competition.</h1>
+                    <p class="subtitle">Proscan empowers you to track competitor pricing, analyze product strategies, and uncover critical market insights to dominate your niche.</p>
+                    <a href="https://chromewebstore.google.com/detail/proscan-amazon-product-sc/bikgignfnljpbmchlemkbbpboigodgap" class="hero-cta-button">Get Your Edge - It's Free!</a>
+                </div>
+                <div class="hero-mockup-container">
+                    <!-- Browser Mockup - Existing Structure -->
+                    <div class="browser-mockup">
+                        <div class="browser-header">
+                            <div class="browser-dots">
+                                <div class="dot red"></div>
+                                <div class="dot yellow"></div>
+                                <div class="dot green"></div>
+                            </div>
+                            <div class="address-bar">
+                                https://example-store.com/products
+                            </div>
+                        </div>
+
+                        <div class="browser-content">
+                            <div class="proscan-popup">
+                                <div class="popup-header">
+                                    <img src="/icon128.png" alt="Proscan icon"> Proscan
+                                </div>
+                                <div class="popup-content">
+                                    <div class="scan-status" id="scanStatus">
+                                        Scanning page...
+                                    </div>
+                                    <div class="scraping-status-container" id="scrapingStatusContainer"></div>
+                                </div>
+                            </div>
+
+                            <div class="sample-page">
+                                <!-- Page title and subtitle removed from here to simplify mockup page -->
+                                <div class="scan-item" data-scan-order="0">
+                                    <div class="item-emoji">🎧</div>
+                                    <div class="item-details-wrapper">
+                                        <div class="item-title">Wireless Bluetooth Headphones</div>
+                                        <div class="item-description">Premium sound, noise cancellation</div>
+                                        <div class="item-price">$89.99</div>
+                                        <button class="item-button">Add to Cart 🛒</button>
+                                    </div>
+                                </div>
+
+                                <div class="scan-item" data-scan-order="1">
+                                    <div class="item-emoji">⌚</div>
+                                    <div class="item-details-wrapper">
+                                        <div class="item-title">Smart Fitness Watch</div>
+                                        <div class="item-description">GPS, heart rate & sleep tracking.</div>
+                                        <div class="item-price">$249.99</div>
+                                        <button class="item-button">Add to Cart 🛒</button>
+                                    </div>
+                                </div>
+
+                                <div class="scan-item" data-scan-order="2">
+                                    <div class="item-emoji">🔋</div>
+                                    <div class="item-details-wrapper">
+                                        <div class="item-title">Portable Power Bank</div>
+                                        <div class="item-description">20,000mAh, fast charge, multiple ports.</div>
+                                        <div class="item-price">$34.99</div>
+                                        <button class="item-button">Add to Cart 🛒</button>
+                                    </div>
+                                </div>
+
+                                <div class="scan-item" data-scan-order="3">
+                                    <div class="item-emoji">⌨️</div>
+                                    <div class="item-details-wrapper">
+                                        <div class="item-title">Mechanical Gaming Keyboard</div>
+                                        <div class="item-description">RGB backlit, responsive switches.</div>
+                                        <div class="item-price">$79.99</div>
+                                        <button class="item-button">Add to Cart 🛒</button>
+                                    </div>
+                                </div>
+
+                                <div class="scan-item" data-scan-order="4">
+                                    <div class="item-emoji">☕</div>
+                                    <div class="item-details-wrapper">
+                                        <div class="item-title">Single Serve Coffee Maker</div>
+                                        <div class="item-description">Quick brew, compact design.</div>
+                                        <div class="item-price">$49.99</div>
+                                        <button class="item-button">Add to Cart 🛒</button>
+                                    </div>
+                                </div>
+
+                                <div class="scan-item" data-scan-order="5">
+                                    <div class="item-emoji">🚁</div>
+                                    <div class="item-details-wrapper">
+                                        <div class="item-title">Quadcopter Drone</div>
+                                        <div class="item-description">4K camera, 30-min flight time.</div>
+                                        <div class="item-price">$399.99</div>
+                                        <button class="item-button">Add to Cart 🛒</button>
+                                    </div>
+                                </div>
+
+                                <div class="scan-item" data-scan-order="6">
+                                    <div class="item-emoji">🔊</div>
+                                    <div class="item-details-wrapper">
+                                        <div class="item-title">Smart Home Speaker</div>
+                                        <div class="item-description">Voice assistant, multi-room audio.</div>
+                                        <div class="item-price">$129.99</div>
+                                        <button class="item-button">Add to Cart 🛒</button>
+                                    </div>
+                                </div>
+                                <!-- Removed other scan items for brevity in hero mockup -->
+                            </div>
+                        </div>
+                    </div>
+                    <!-- End Browser Mockup -->
+                </div>
+            </div>
+        </section>
+
+        <section id="features">
+            <div class="container">
+                <h2>Uncover Your Competitors' Strategies</h2>
+                <p class="section-subtitle">Gain a competitive advantage by effortlessly analyzing product data from across the market.</p>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <h3>Competitor Price Monitoring</h3>
+                        <p>Keep a close eye on competitor pricing strategies. Proscan automatically tracks price changes on products you're watching, giving you the data to react swiftly.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>Product Data Extraction</h3>
+                        <p>Effortlessly scrape key product details from listings – titles, descriptions, images, and more – to build your competitive dataset.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>Market Trend Analysis</h3>
+                        <p>Leverage historical price and listing data to understand market trends, identify opportunities, and make informed decisions for your product catalog.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="cta">
+            <div class="container">
+                <h2>Ready to Dominate Your Market?</h2>
+                <p>Start leveraging competitive insights with Proscan. See what your rivals are doing and make smarter, data-driven decisions. Installation is quick and easy!</p>
+                <a href="https://chromewebstore.google.com/detail/proscan-amazon-product-sc/bikgignfnljpbmchlemkbbpboigodgap" class="cta-button-large">Install Proscan & Get Ahead</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Proscan. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
