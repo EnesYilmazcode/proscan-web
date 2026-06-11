@@ -17,6 +17,7 @@ _Last updated: 2026-06-10. Every decision only the owner can make, in one place 
 | D9 | **Import existing users' local scrape history on first link** | Yes — one-time synthetic `source.type:'import'` run | M3 |
 | D10 | **Extension-only sign-in (OAuth fallback)** | Defer — dashboard token handoff only | M3 |
 | D11 | **`unlimitedStorage` permission in the sync release** | Add it (queue + cached history can exceed the 10 MB cap) | M3 |
+| D12 | **Firestore database location** | Cheap **single-region** `us-central1`, not the `nam5` multi-region the docs assumed | M2 (location is **irreversible** at creation) |
 
 ---
 
@@ -43,6 +44,8 @@ The published extension ships a base64-hardcoded Gemini API key used by **all** 
 - **(b):** disable the chatbot with a changelog note until the server-side Catalog Copilot (parked) replaces it.
 - **(c):** defer rotation — **not recommended**; it's a live shared-key incident with your billing/quota attached.
 
+**2026-06-10 note:** Google cut Gemini API free-tier quotas ~50–80% on 2025-12-07 — 2.5 Flash reportedly as low as 20–250 req/day free, 2.5 Flash-Lite ~15 RPM / ~1,000 req/day — and the official limits table moved to the per-account AI Studio dashboard (https://ai.google.dev/gemini-api/docs/rate-limits). Consequence for option (a): the M3 BYO-key chatbot must default to a Flash-Lite-class model and handle 429s gracefully; re-verify the live quotas in AI Studio when building the settings UI.
+
 ### D5 — "Variation analysis": you said it, two readings exist
 - *Statistical variation* — price-spread CV/IQR across sellers: **in MVP** (Spread & Max Buy).
 - *Product variations* — parent/child ASINs ("+5 colors" hints, twister matrix): the cheap SERP variation-hint selector lands in v1 under the default; the full per-variation matrix stays deferred with the product-page fetch (D7).
@@ -65,3 +68,9 @@ Should the extension work for users who never open the dashboard? Default: no (t
 
 ### D11 — `unlimitedStorage`
 The sync queue + local seen-set can brush the 10 MB `chrome.storage.local` cap on big storefronts. Adding the permission is one manifest line in the same M3 submission; it may contribute to a longer CWS review (covered in the release-engineering plan).
+
+### D12 — Firestore database location ⏳ (irreversible the moment B1 clicks "create"; verified against live pricing 2026-06-10)
+The docs assumed the `nam5` US multi-region; the default is now a cheap **single-region** location (`us-central1`). Owner task B1 in `TASKS.md` creates the database, and the location **cannot be changed afterward** — short of a full export/import migration to a new database.
+- **Why:** single-region operation pricing runs roughly 30–45% below `nam5` ($0.06/100k reads, $0.18/100k writes at `nam5`; single-region cheaper — exact table at https://cloud.google.com/firestore/pricing). The entire cost model in `architecture/data-model.md` §7 is priced at `nam5` rates, so the single-region default shaves ~$20–25/mo off the worst case at 1,000 users — and the saving compounds forever.
+- **Trade-off:** single-region availability SLA is 99.99% vs `nam5`'s 99.999%. For a $0-revenue product, acceptable.
+- The `data-model.md` §7 numbers are **not** being re-derived; they stand as conservative upper bounds.

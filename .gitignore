@@ -13,6 +13,9 @@ dist/
 # Firebase cache
 .firebase/
 
+# Firebase emulator persisted data (npm run emulators:persist)
+.emulator-data/
+
 # Firebase config
 
 # Uncomment this if you'd like others to create their own Firebase project.

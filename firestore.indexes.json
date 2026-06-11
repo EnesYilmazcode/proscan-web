@@ -1,0 +1,30 @@
+{
+  "indexes": [
+    { "collectionGroup": "runs", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "sourceId", "order": "ASCENDING" },
+      { "fieldPath": "startedAt", "order": "DESCENDING" } ] },
+
+    { "collectionGroup": "products", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "lead.stage", "order": "ASCENDING" },
+      { "fieldPath": "lead.stageChangedAt", "order": "DESCENDING" } ] },
+
+    { "collectionGroup": "products", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "sourceIds", "arrayConfig": "CONTAINS" },
+      { "fieldPath": "latest.at", "order": "DESCENDING" } ] },
+
+    { "collectionGroup": "products", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "sourceIds", "arrayConfig": "CONTAINS" },
+      { "fieldPath": "delta.pPct", "order": "ASCENDING" } ] },
+
+    { "collectionGroup": "products", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "tags", "arrayConfig": "CONTAINS" },
+      { "fieldPath": "latest.at", "order": "DESCENDING" } ] }
+  ],
+  "fieldOverrides": [
+    { "collectionGroup": "pages",          "fieldPath": "items",  "indexes": [] },
+    { "collectionGroup": "history",        "fieldPath": "d",      "indexes": [] },
+    { "collectionGroup": "offerSnapshots", "fieldPath": "offers", "indexes": [] },
+    { "collectionGroup": "offerSnapshots", "fieldPath": "prices", "indexes": [] },
+    { "collectionGroup": "sellers",        "fieldPath": "asins",  "indexes": [] }
+  ]
+}

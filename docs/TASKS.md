@@ -17,7 +17,7 @@ The Firebase CLI on this machine is already logged in as the owner, so even depl
 - [ ] Selector + AOD verification spike (~1 day, time-boxed): live-DOM verify every planned selector, fresh Jest fixtures first, empirical AOD throttle test at 2s+jitter
 - [ ] Draft privacy policy + ToS as site pages (CWS hard prerequisite for M3)
 - [ ] Brand `404.html`; one deploy through the new pipeline (site stays byte-identical)
-- [ ] Attempt `firebase firestore:databases:create --location nam5` via CLI — if the disabled-API 403 blocks it, that becomes owner task B1
+- [ ] Attempt `firebase firestore:databases:create --location us-central1` (per D12 — single-region, not `nam5`) via CLI — if the disabled-API 403 blocks it, that becomes owner task B1
 
 ### M2 (after B1 + B2 unlock)
 - [ ] Auth screens (email + Google), profile menu, session handling
@@ -45,10 +45,10 @@ The Firebase CLI on this machine is already logged in as the owner, so even depl
 
 | # | Action | When | Time | Steps |
 |---|---|---|---|---|
-| **B1** | **Create Firestore database** (only if my CLI attempt 403s) | M2 gate | ~2 min | [console.firebase.google.com](https://console.firebase.google.com) → `proscanbot` → Build → Firestore Database → Create database → location **nam5** → production mode (I deploy the real rules) |
+| **B1** | **Create Firestore database** (only if my CLI attempt 403s) | M2 gate | ~2 min | [console.firebase.google.com](https://console.firebase.google.com) → `proscanbot` → Build → Firestore Database → Create database → **decide D12 before clicking create** (database location — single-region **`us-central1`** default; the location is **irreversible**) → pick the location accordingly, **not `nam5`** unless deliberately chosen → production mode (I deploy the real rules) |
 | **B2** | **Enable Auth providers** | M2 gate | ~3 min | Console → Authentication → Get started → Sign-in method → enable **Email/Password** and **Google** (pick your support email) |
-| **B3** | **Upgrade to Blaze + $10 budget alert** (decision D1) | M3 gate | ~5 min | Console → bottom-left Spark "Upgrade" → attach billing account (card) → then Billing → Budgets & alerts → $10/mo. Expected bill ~$0 at current scale |
-| **B4** | **Gemini key check + rotation** | Check **now**; rotate with the M3 release (see note) | ~5 min | [aistudio.google.com](https://aistudio.google.com) → API keys → check usage for anomalies today. Rotation kills the chatbot for all ~233 current users until the BYO-key release ships, so default timing is: rotate the moment the M3 extension version is live (or immediately if usage looks abused — your call, decision D4) |
+| **B3** | **Upgrade to Blaze + budget alerts** (decision D1) | M3 gate | ~5 min | Console → bottom-left Spark "Upgrade" → attach billing account (card) → then Billing → Budgets & alerts → set **three** thresholds: **$5 actual, $10 actual, $25 forecast** per [`ops/billing-runbook.md`](ops/billing-runbook.md). Expected bill ~$0 at current scale |
+| **B4** | **Gemini key check + rotation** | Check **now**; rotation timing depends on the billing check | ~5 min | [aistudio.google.com](https://aistudio.google.com) → API keys → **FIRST check whether the embedded key's Google Cloud project has billing enabled.** If billing-enabled: the leaked key is an unbounded liability — rotate **immediately** (accept the chatbot outage for all ~233 users) or move the key to a no-billing project as a stopgap. If no-billing: exposure is quota exhaustion only, and the M3 timing stands — rotate the moment the M3 extension version is live (or sooner if usage looks abused — your call, decision D4) |
 | **B5** | **CWS submission approvals** (×2: M3 batch a, M5 batch b) | M3, M5 | ~10 min each | I hand you a built zip + listing copy + exact data-disclosure answers; you upload in the [CWS developer dashboard](https://chrome.google.com/webstore/devconsole), set staged rollout, submit |
 | **B6** | **Share CWS dashboard stats** (weekly actives, install trend) | Anytime, informs D3 | ~2 min | Developer dashboard → ProScan → Stats screenshot. Public listing already verified: 233 users, 4.9★/8 ratings, v2.0 |
 | **B7** | **Stripe setup** | M6 gate | ~30 min | Create Stripe account → restricted API key + webhook signing secret to me → enable customer portal. I build Checkout, the webhook Function, and the pricing page |
@@ -61,7 +61,7 @@ The Firebase CLI on this machine is already logged in as the owner, so even depl
 
 ## Tier C — Decisions only the owner can make
 
-All eleven live in **`decisions.md`** with defaults — D1 (Blaze), D2 (domain), D3 (pricing ladder), D4 (chatbot fate), D5 (variation meaning), D6 (dropping "clients"), D7 (BSR deferral), D8 (rename), D9 (history import), D10 (OAuth fallback), D11 (unlimitedStorage). A one-line reply ("defaults, except D3 = ladder B") unblocks everything decision-gated.
+All twelve live in **`decisions.md`** with defaults — D1 (Blaze), D2 (domain), D3 (pricing ladder), D4 (chatbot fate), D5 (variation meaning), D6 (dropping "clients"), D7 (BSR deferral), D8 (rename), D9 (history import), D10 (OAuth fallback), D11 (unlimitedStorage), D12 (Firestore location). A one-line reply ("defaults, except D3 = ladder B") unblocks everything decision-gated.
 
 ---
 

@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+    function signedIn() { return request.auth != null; }
+    function member(wid) {
+      return signedIn() && request.auth.uid == wid;
+      // Later (VA Seats): || request.auth.uid in get(/databases/$(db)/documents/workspaces/$(wid)).data.members
+    }
+
+    match /users/{uid} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
+    match /workspaces/{wid} {
+      allow read: if member(wid);
+      allow create: if member(wid)
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.get('plan', 'free') == 'free';
+      allow update: if member(wid)
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.get('plan', 'free') == resource.data.get('plan', 'free');
+      allow delete: if false;
+
+      match /sources/{sourceId} {
+        allow read, delete: if member(wid);
+        allow create, update: if member(wid)
+          && request.resource.data.type in ['storefront', 'keyword']
+          && request.resource.data.get('cadenceDays', 7) is int;
+      }
+
+      match /runs/{runId} {
+        allow read, delete: if member(wid);
+        allow create, update: if member(wid)
+          && request.resource.data.status in ['active', 'complete', 'stopped', 'dead']
+          && request.resource.data.dayKey is string
+          && request.resource.data.sourceId is string;
+
+        match /pages/{pageId} {
+          allow read, delete: if member(wid);
+          allow create, update: if member(wid)
+            && request.resource.data.items is map
+            && request.resource.data.items.size() <= 120     // Amazon pages carry ≤60 placements; 2× headroom
+            && request.resource.data.expireAt is timestamp;  // TTL field is mandatory on cold docs
+        }
+      }
+
+      match /products/{asin} {
+        allow read, delete: if member(wid);
+        allow create, update: if member(wid)
+          && request.resource.data.asin == asin              // doc id == payload ASIN (dedup axis)
+          && (!('latest' in request.resource.data) || (
+                request.resource.data.latest.dayKey is string
+                && (!('p' in request.resource.data.latest) || request.resource.data.latest.p is int)
+                && (!('v' in request.resource.data.latest) || request.resource.data.latest.v is int)))
+          && (!('lead' in request.resource.data)
+              || request.resource.data.lead.stage in
+                 ['new', 'reviewing', 'approved', 'purchased', 'rejected', 'archived']);
+
+        match /history/{seriesId} {
+          allow read: if member(wid);
+          allow write: if member(wid) && seriesId in ['daily', 'monthly'];
+        }
+        match /offerSnapshots/{snapId} {
+          allow read, delete: if member(wid);
+          allow create, update: if member(wid)
+            && request.resource.data.prices is list
+            && request.resource.data.expireAt is timestamp;
+        }
+        match /events/{eventId} {
+          allow read, create: if member(wid);
+          allow update, delete: if false;                    // append-only activity trail
+        }
+      }
+
+      match /sellers/{sellerId} { allow read, write: if member(wid); }
+      match /rules/{ruleSetId}  { allow read, write: if member(wid); }
+      match /views/{viewId}     { allow read, write: if member(wid); }
+      match /alerts/{alertId}   { allow read, write: if member(wid); }
+    }
+  }
+}

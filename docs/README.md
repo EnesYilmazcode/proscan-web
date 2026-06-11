@@ -19,6 +19,7 @@ _Produced 2026-06-09/10 by a 20-agent planning fleet (recon, web research, perso
 |---|---|
 | [`architecture/platform-architecture.md`](architecture/platform-architecture.md) | Full system design: auth handoff (custom-token callable), sync queue, hosting layout, extension build pipeline, emulator/staging strategy, CWS release engineering, backups |
 | [`architecture/data-model.md`](architecture/data-model.md) | Definitive Firestore schema: `workspaces/{wid}` tree, ASIN-keyed products + date-keyed history docs, security rules, indexes, **authoritative cost model** (§7), retention/TTL, quota enforcement |
+| [`ops/billing-runbook.md`](ops/billing-runbook.md) | Layered budget alerts ($5/$10 actual + $25 forecast), the billing kill switch, and the `onSnapshot`/deploy/bundle hygiene rules that keep the bill at ~$0 |
 
 ## Research (the evidence)
 

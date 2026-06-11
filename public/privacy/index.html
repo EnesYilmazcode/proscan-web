@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy · ProScan</title>
+    <meta name="description" content="How ProScan handles your data: what the extension reads, where your data lives, cloud sync, retention, and deletion.">
+    <link rel="icon" href="/icon128.png">
+    <style>
+        :root {
+            --dark: #2a343e;
+            --dark-hover: #4a545e;
+            --light: #fcfcfc;
+            --muted: #5a646e;
+            --faint: #adb5bd;
+            --line: #e4e7ea;
+            --soft: #f4f7f6;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.7;
+        }
+        .container { width: 90%; max-width: 760px; margin: 0 auto; }
+
+        header { background: var(--dark); padding: 14px 0; }
+        header nav { display: flex; align-items: center; justify-content: space-between; }
+        .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--light); }
+        .brand img { height: 40px; }
+        .brand span { font-size: 1.25rem; font-weight: 700; }
+        .nav-links a {
+            color: var(--light); text-decoration: none; font-weight: 500;
+            font-size: 0.95rem; margin-left: 22px; opacity: 0.8;
+        }
+        .nav-links a:hover { opacity: 1; }
+        .nav-links a[aria-current="page"] { opacity: 1; text-decoration: underline; text-underline-offset: 5px; }
+
+        .hero { background: var(--dark); color: var(--light); padding: 44px 0 56px; }
+        .hero .overline {
+            margin: 0 0 10px; font-size: 0.75rem; font-weight: 600;
+            letter-spacing: 0.18em; text-transform: uppercase; color: var(--faint);
+        }
+        .hero h1 { margin: 0 0 12px; font-size: 2.6rem; line-height: 1.15; }
+        .hero .dates { margin: 0; color: var(--faint); font-size: 0.95rem; }
+
+        main { padding: 48px 0 72px; }
+        .summary {
+            background: var(--soft); border-left: 4px solid var(--dark);
+            border-radius: 0 10px 10px 0; padding: 22px 26px; margin: 0 0 44px;
+        }
+        .summary p { margin: 0; color: var(--dark); }
+        .summary .label {
+            display: block; font-size: 0.75rem; font-weight: 700;
+            letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        article { counter-reset: sec; }
+        section { margin: 0 0 8px; }
+        section + section { border-top: 1px solid var(--line); margin-top: 30px; }
+        section h2 { counter-increment: sec; font-size: 1.35rem; margin: 30px 0 12px; line-height: 1.3; }
+        section h2::before {
+            content: counter(sec, decimal-leading-zero);
+            display: block; font-size: 0.78rem; font-weight: 600;
+            letter-spacing: 0.16em; color: var(--faint); margin-bottom: 4px;
+        }
+        p, li { color: #3f4a54; }
+        ul { padding-left: 22px; margin: 12px 0; }
+        li { margin: 7px 0; }
+        strong { color: var(--dark); }
+        main a { color: var(--dark); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+        main a:hover { color: var(--dark-hover); }
+
+        .contact-cta {
+            display: inline-block; background: var(--dark); color: var(--light) !important;
+            padding: 12px 28px; border-radius: 999px; text-decoration: none !important;
+            font-weight: 700; margin-top: 8px; transition: background-color 0.3s ease;
+        }
+        .contact-cta:hover { background: var(--dark-hover); }
+
+        footer { background: var(--dark); padding: 30px 0; font-size: 0.9rem; }
+        footer .container { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+        footer p { margin: 0; color: var(--faint); }
+        footer nav a { color: var(--light); text-decoration: none; font-weight: 500; }
+        footer nav a + a { margin-left: 20px; }
+        footer nav a:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+        @media (max-width: 560px) {
+            .hero h1 { font-size: 2rem; }
+            .brand span { font-size: 1.1rem; }
+            .nav-links a { margin-left: 14px; font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <a class="brand" href="/">
+                <img src="/icon128.png" alt="ProScan logo">
+                <span>ProScan</span>
+            </a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/privacy/" aria-current="page">Privacy</a>
+                <a href="/terms/">Terms</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <div class="container">
+            <p class="overline">ProScan · Legal</p>
+            <h1>Privacy Policy</h1>
+            <p class="dates">Effective June 10, 2026 &middot; Last updated June 10, 2026</p>
+        </div>
+    </div>
+
+    <main class="container">
+        <div class="summary">
+            <span class="label">The short version</span>
+            <p>ProScan reads public Amazon product pages you choose to scan, in your own browser. Your data stays on your device unless you create an account and turn on cloud sync — and even then it is stored under your own account, used only for the features you see, and never sold, shared, or used for advertising. We never ask for your Amazon login.</p>
+        </div>
+
+        <article>
+            <section>
+                <h2>Who we are</h2>
+                <p>ProScan is a browser extension and companion website that helps Amazon sellers with product research and storefront analytics. This policy explains what information ProScan handles when you use the extension and this website, and the choices you have. If anything here is unclear, email us at <a href="mailto:enesyilmaz5157@gmail.com">enesyilmaz5157@gmail.com</a>.</p>
+            </section>
+
+            <section>
+                <h2>What the ProScan extension reads</h2>
+                <p>The extension analyzes <strong>public Amazon product-listing pages that you are actively viewing</strong>. Every scan is started by you — ProScan does not crawl in the background or visit pages on your behalf. From those pages it reads listing details such as product titles, prices, offers, ratings, and seller storefront information, so it can show you research and analytics about the products you looked at.</p>
+                <p>The extension never reads or collects:</p>
+                <ul>
+                    <li>Your Amazon username, password, or any other Amazon credentials.</li>
+                    <li>Anything from Seller Central or other logged-in seller account areas.</li>
+                    <li>Personal information about buyers or shoppers — no names, addresses, or order details.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Your data is local-first</h2>
+                <p>Today, everything the extension collects is stored <strong>in your own browser's extension storage, on your device</strong>. It is not sent to ProScan's servers. You can remove it at any time by clearing the extension's data or uninstalling the extension.</p>
+            </section>
+
+            <section>
+                <h2>Accounts and cloud sync</h2>
+                <p>When you create an account and enable cloud sync, two kinds of data are handled in the cloud:</p>
+                <ul>
+                    <li><strong>Account data.</strong> Sign-in is handled by Firebase Authentication, a Google service. We receive your email address, or your Google account identity if you sign in with Google.</li>
+                    <li><strong>Synced research data.</strong> The product and pricing snapshots you collected are stored in Cloud Firestore under your own account.</li>
+                </ul>
+                <p>This data is used <strong>solely to power the user-facing dashboard features you see</strong> — your history, trends, and exports of your own data. It is <strong>never sold, never shared with third parties, and never used for advertising</strong>.</p>
+            </section>
+
+            <section>
+                <h2>Chrome Web Store Limited Use</h2>
+                <p>ProScan's use of information received from Google APIs and the data it collects complies with the Chrome Web Store User Data Policy, including the Limited Use requirements.</p>
+                <p>In plain terms: we only use your data to provide the features you can see and use yourself, and for nothing else.</p>
+            </section>
+
+            <section>
+                <h2>AI assistant (bring your own key)</h2>
+                <p>ProScan includes an optional AI chatbot. If you choose to supply your own Google Gemini API key:</p>
+                <ul>
+                    <li>Your chat prompts and product data from the page you are viewing are sent to <strong>Google's Gemini API under your own key</strong>.</li>
+                    <li>Your key is stored <strong>locally in your browser</strong>. ProScan's servers never receive your key or your conversations.</li>
+                    <li>Google's processing of requests made with your key is governed by Google's own terms, not ours.</li>
+                </ul>
+                <p>If you never add a key, the chatbot sends nothing anywhere.</p>
+            </section>
+
+            <section>
+                <h2>How long we keep data</h2>
+                <ul>
+                    <li><strong>Raw scrape artifacts</strong> synced to the cloud (page snapshots and offer data) are automatically deleted 400 days after collection.</li>
+                    <li><strong>Free-plan history</strong> is retained for 30 days.</li>
+                    <li><strong>Local extension data</strong> stays on your device until you remove it.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Deleting your data</h2>
+                <p>To delete your account and any synced data, email <a href="mailto:enesyilmaz5157@gmail.com">enesyilmaz5157@gmail.com</a> from the address associated with your account and we will remove it. A self-serve "delete my account and all my data" option will ship before any paid plan launches.</p>
+            </section>
+
+            <section>
+                <h2>Security</h2>
+                <ul>
+                    <li>Authentication is handled by Firebase, a Google service. If you sign in with Google, <strong>we never see or store your password</strong>.</li>
+                    <li><strong>We never request your Amazon credentials.</strong> No legitimate part of ProScan will ever ask for your Amazon login.</li>
+                    <li>Synced data is stored under your own account and is not accessible to other users.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>What we don't do</h2>
+                <ul>
+                    <li>We do not sell or rent your data — to anyone, ever.</li>
+                    <li>We do not show ads or use your data for advertising.</li>
+                    <li>This website does not run analytics scripts, advertising trackers, or third-party cookies.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Children</h2>
+                <p>ProScan is a tool for sellers and is not directed to children. We do not knowingly collect personal information from anyone under 13.</p>
+            </section>
+
+            <section>
+                <h2>Changes to this policy</h2>
+                <p>If we change this policy, we will post the updated version on this page and revise the date at the top. For material changes that affect account holders, we will take reasonable steps to notify you, such as a notice on this site or an email to your account address.</p>
+            </section>
+
+            <section>
+                <h2>Contact</h2>
+                <p>Questions, concerns, or deletion requests — we read every email.</p>
+                <p><a class="contact-cta" href="mailto:enesyilmaz5157@gmail.com">Email enesyilmaz5157@gmail.com</a></p>
+            </section>
+        </article>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 ProScan</p>
+            <nav>
+                <a href="/">Home</a>
+                <a href="/privacy/">Privacy Policy</a>
+                <a href="/terms/">Terms of Service</a>
+            </nav>
+        </div>
+    </footer>
+</body>
+</html>
