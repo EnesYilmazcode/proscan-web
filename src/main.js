@@ -6,10 +6,8 @@ import './style.css';
 const scanItems = document.querySelectorAll('#hero .scan-item'); // Target only hero mockup items
 const scanStatusElement = document.getElementById('scanStatus');
 const browserContent = document.querySelector('#hero .browser-content'); // Target hero mockup
-const proscanPopup = document.querySelector('#hero .proscan-popup'); // Target hero mockup
 const scrapingStatusContainer = document.getElementById('scrapingStatusContainer'); // New element
 
-const popupInitialTop = 15;
 let currentScanIndex = 0;
 let totalItemsFound = 0;
 let isMockupVisible = false;
@@ -24,20 +22,17 @@ if (browserContent) {
     observer.observe(browserContent);
 }
 
+// Scroll ONLY the mockup's inner container — never the page. (scrollIntoView
+// scrolls every scrollable ancestor, which hijacked the user's page scroll.)
 function scrollToItemView(itemElement) {
     if (itemElement && browserContent && isMockupVisible) { // Check isMockupVisible
-        itemElement.scrollIntoView({
-            behavior: 'smooth',
-            block: 'nearest',
-            inline: 'nearest'
-        });
+        const containerRect = browserContent.getBoundingClientRect();
+        const itemRect = itemElement.getBoundingClientRect();
+        const targetTop = browserContent.scrollTop
+            + (itemRect.top - containerRect.top)
+            - (browserContent.clientHeight - itemElement.clientHeight) / 2;
+        browserContent.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
     }
-}
-
-if (browserContent && proscanPopup) {
-    browserContent.addEventListener('scroll', () => {
-        proscanPopup.style.top = (popupInitialTop + browserContent.scrollTop) + 'px';
-    });
 }
 
 function performScan() {
@@ -98,9 +93,6 @@ if (scanItems.length > 0) {
 }
 
 setTimeout(() => {
-    if (proscanPopup && browserContent) {
-        proscanPopup.style.top = (popupInitialTop + browserContent.scrollTop) + 'px';
-    }
     if (scanItems.length > 0 && scanStatusElement && scrapingStatusContainer) {
         totalItemsFound = 0;
         scanItems.forEach(item => delete item.dataset.justCountedInCycle);
