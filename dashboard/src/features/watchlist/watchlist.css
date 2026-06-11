@@ -1,0 +1,181 @@
+/* Watchlist feature — dense sources table. Tokens only (tokens.css). */
+
+/* ── header summary ("8 storefronts · 3 due for rescan") ─────────── */
+.wl-summary {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ── table card ─────────────────────────────────────────────────── */
+.wl-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow-x: auto;
+}
+
+.wl-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--table-font);
+}
+
+.wl-table th {
+  padding: var(--cell-pad);
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.wl-table td {
+  padding: var(--cell-pad);
+  border-bottom: 1px solid var(--line);
+  height: var(--row-height);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.wl-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Row hover = faint gold wash, no transform (instrument-like). */
+.wl-row {
+  cursor: pointer;
+}
+.wl-row:hover {
+  background: var(--gold-wash);
+}
+.wl-row:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+}
+
+/* ── cell modifiers ─────────────────────────────────────────────── */
+.wl-cell--num {
+  text-align: right;
+}
+.wl-cell--muted {
+  color: var(--muted);
+}
+.wl-cell--ctl {
+  width: 34px;
+  padding: 0 var(--space-2);
+  text-align: center;
+}
+.wl-cell--id {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--muted);
+}
+.wl-dash {
+  color: var(--muted);
+}
+
+/* ── nickname: click-to-edit inline ─────────────────────────────── */
+.wl-nick {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 650;
+  color: var(--ink);
+  cursor: text;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+.wl-nick:hover {
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+.wl-nick--placeholder {
+  color: var(--muted);
+  font-weight: 400;
+  font-style: italic;
+}
+.wl-nick-input {
+  font: inherit;
+  font-weight: 650;
+  width: 220px;
+  height: 26px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--gold-glow);
+}
+.wl-nick-input::placeholder {
+  color: var(--muted);
+  font-weight: 400;
+  font-style: italic;
+}
+
+/* ── cadence inline select ──────────────────────────────────────── */
+.wl-cadence {
+  height: 26px;
+  padding: 0 var(--space-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  cursor: pointer;
+}
+.wl-cadence:hover {
+  border-color: var(--gold);
+}
+
+/* ── icon buttons (watched eye, open-in-Amazon) ─────────────────── */
+.wl-iconbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.wl-iconbtn:hover {
+  border-color: var(--gold);
+  background: var(--surface);
+  color: var(--ink);
+}
+.wl-iconbtn--on {
+  color: var(--gold-pressed);
+}
+.wl-iconbtn--on:hover {
+  color: var(--gold-pressed);
+}
+
+/* ── tags ───────────────────────────────────────────────────────── */
+.wl-tags {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.wl-tags-more {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  color: var(--muted);
+}

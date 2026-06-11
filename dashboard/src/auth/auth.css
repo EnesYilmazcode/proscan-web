@@ -1,0 +1,176 @@
+/* Auth screens — dark chrome instrument panel. Tokens only. */
+
+.auth {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+}
+
+.auth__panel {
+  width: 100%;
+  max-width: 384px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.auth__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  color: var(--gold);
+}
+
+.auth__wordmark {
+  font-family: var(--font-ui);
+  font-size: 24px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  color: var(--chrome-ink);
+}
+
+.auth__tagline {
+  font-size: 13px;
+  color: var(--chrome-muted);
+  margin: calc(-1 * var(--space-3)) 0 var(--space-2);
+}
+
+.auth__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.auth__label {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--chrome-muted);
+}
+
+.auth__input {
+  height: 38px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--chrome-line);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--chrome-ink);
+  font-size: 14px;
+}
+.auth__input::placeholder {
+  color: var(--chrome-muted);
+  opacity: 0.7;
+}
+.auth__input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px var(--gold-glow);
+}
+
+.auth__cta {
+  height: 40px;
+  font-size: 14px;
+  width: 100%;
+}
+
+.auth__error {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--gold);
+  border: 1px solid var(--chrome-line);
+  border-left: 2px solid var(--red);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.auth__toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  color: var(--chrome-muted);
+  cursor: pointer;
+  text-align: center;
+}
+.auth__toggle b {
+  color: var(--gold);
+  font-weight: 650;
+}
+.auth__toggle:hover b {
+  color: var(--gold-hover);
+}
+
+.auth__hint {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 1px dashed var(--chrome-line);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--chrome-muted);
+  background: none;
+  cursor: pointer;
+}
+.auth__hint:hover {
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
+.auth__links {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-4);
+  font-size: 13px;
+}
+.auth__links a {
+  color: var(--chrome-muted);
+  text-decoration: none;
+  border-bottom: 1px solid var(--chrome-line);
+  padding-bottom: 1px;
+}
+.auth__links a:hover {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+.auth__soon-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--chrome-ink);
+}
+.auth__soon-body {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--chrome-muted);
+}
+
+/* Minimal splash while auth state / bootstrap resolves. */
+.auth-splash {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+}
+.auth-splash__mark {
+  color: var(--gold);
+  animation: splash-pulse 1.2s ease-in-out infinite;
+}
+@keyframes splash-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}

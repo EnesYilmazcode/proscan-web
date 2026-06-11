@@ -1,0 +1,336 @@
+/* History Drawer feature styles — consumes tokens.css custom properties
+   ONLY (no raw color values). Class prefix: hd-. */
+
+/* ── sections (hairline-separated, controlled density) ───────────── */
+.hd-section {
+  padding: var(--space-5) 0;
+  border-top: 1px solid var(--line);
+}
+.hd-section:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.hd-section__title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hd-section__aside {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.hd-muted {
+  font-size: 13px;
+  color: var(--muted);
+}
+.hd-error {
+  margin-top: var(--space-2);
+  font-size: 12px;
+  color: var(--red);
+}
+
+/* ── 1 · header ──────────────────────────────────────────────────── */
+.hd-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.hd-head__thumb {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.hd-head__thumb--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+.hd-head__main {
+  flex: 1;
+  min-width: 0;
+}
+.hd-head__name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+.hd-head__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.hd-asin {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 22px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 12px;
+  cursor: pointer;
+}
+.hd-asin:hover {
+  border-color: var(--gold);
+  background: var(--gold-wash);
+}
+.hd-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.hd-link:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+/* ── 2 · verdict block (signature) ───────────────────────────────── */
+.hd-verdict {
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+.hd-verdict__sentence {
+  font-size: 18px;
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+.hd-verdict__sentence .mono {
+  font-weight: 600;
+}
+.hd-verdict__pill {
+  margin-top: var(--space-3);
+  height: 34px;
+  padding: 0 var(--space-4);
+  font-size: 15px;
+}
+.hd-verdict--empty {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/* ── 3 · price history chart tooltip ─────────────────────────────── */
+.hd-tip {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-size: 12px;
+}
+.hd-tip__day {
+  margin-bottom: 2px;
+  color: var(--muted);
+}
+.hd-tip__row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+/* ── 4 · sparkline row ───────────────────────────────────────────── */
+.hd-sparks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+.hd-spark {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.hd-spark__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.hd-spark__label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hd-spark__value {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ── 5 · spread detail ───────────────────────────────────────────── */
+.hd-az-warn {
+  margin-bottom: var(--space-3);
+}
+.hd-kv-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3) var(--space-4);
+}
+.hd-bb-val {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.hd-offers {
+  width: 100%;
+  margin-top: var(--space-4);
+  border-collapse: collapse;
+  font-size: var(--table-font);
+}
+.hd-offers th {
+  padding: var(--cell-pad);
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.hd-offers td {
+  height: var(--row-height);
+  padding: var(--cell-pad);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.hd-offers tbody tr:hover td {
+  background: var(--gold-wash);
+}
+.hd-offers__seller {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hd-offers__num {
+  text-align: right;
+}
+.hd-offers__bb {
+  text-align: center;
+  font-size: 14px;
+  color: var(--gold-pressed);
+}
+.hd-offers-note {
+  margin-top: var(--space-2);
+  font-size: 12px;
+  color: var(--muted);
+}
+.hd-offers-skeleton {
+  margin-top: var(--space-3);
+}
+
+/* ── 6 · lead triage ─────────────────────────────────────────────── */
+.hd-stages {
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.hd-stages__btn {
+  flex: 1 1 0;
+  height: 30px;
+  padding: 0 var(--space-1);
+  border: 0;
+  border-left: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+.hd-stages__btn:first-child {
+  border-left: 0;
+}
+.hd-stages__btn:hover:not(:disabled):not(.hd-stages__btn--active) {
+  background: var(--gold-wash);
+  color: var(--ink);
+}
+.hd-stages__btn--active {
+  background: var(--gold);
+  color: var(--ink);
+}
+.hd-stages__btn:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.hd-field {
+  margin-top: var(--space-4);
+}
+.hd-field__label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hd-field__status {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.hd-field__status--error {
+  color: var(--red);
+}
+.hd-input,
+.hd-textarea {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 13px;
+}
+.hd-textarea {
+  min-height: 76px;
+  resize: vertical;
+}
+
+/* ── 7 · provenance ──────────────────────────────────────────────── */
+.hd-prov {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: 12px;
+  color: var(--muted);
+}

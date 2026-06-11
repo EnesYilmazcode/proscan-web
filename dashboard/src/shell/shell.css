@@ -1,0 +1,214 @@
+/* App shell: 232px chrome sidebar + slim chrome topbar + light content. */
+
+.shell {
+  display: grid;
+  grid-template-columns: 232px 1fr;
+  min-height: 100vh;
+}
+
+/* ── Sidebar ────────────────────────────────────────────────────── */
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--chrome-line);
+}
+
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4) var(--space-5);
+}
+
+.sidebar__wordmark {
+  font-family: var(--font-ui);
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  color: var(--chrome-ink);
+}
+
+.logo-mark {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.logo-mark__sweep {
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    var(--gold-glow) 0deg,
+    transparent 90deg
+  );
+  animation: radar-sweep 1.2s linear infinite;
+  pointer-events: none;
+}
+
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 var(--space-2);
+}
+
+.nav-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--chrome-muted);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.nav-link svg {
+  flex: none;
+  opacity: 0.85;
+}
+.nav-link:hover {
+  color: var(--chrome-ink);
+  background: rgba(255, 255, 255, 0.04);
+}
+.nav-link.active {
+  color: var(--chrome-ink);
+  background: rgba(255, 255, 255, 0.06);
+}
+.nav-link.active::before {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--space-2));
+  top: 5px;
+  bottom: 5px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--gold);
+}
+
+.sidebar__foot {
+  margin-top: auto;
+  padding: var(--space-4);
+  border-top: 1px solid var(--chrome-line);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.sidebar__email {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--chrome-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sidebar__signout {
+  align-self: flex-start;
+  background: none;
+  border: 1px solid var(--chrome-line);
+  border-radius: var(--radius-sm);
+  color: var(--chrome-muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+}
+.sidebar__signout:hover {
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
+/* ── Main column ────────────────────────────────────────────────── */
+.shell__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: 0 var(--space-5);
+  border-bottom: 1px solid var(--chrome-line);
+}
+.topbar__title {
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--chrome-muted);
+}
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.shell__content {
+  flex: 1;
+  padding: var(--space-5);
+}
+.shell__container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ── Narrow viewports: sidebar collapses to a 64px icon rail ─────── */
+@media (max-width: 760px) {
+  .shell {
+    grid-template-columns: 64px 1fr;
+  }
+  .sidebar__brand {
+    justify-content: center;
+    padding: var(--space-4) 0 var(--space-5);
+  }
+  .sidebar__wordmark,
+  .sidebar__email {
+    display: none;
+  }
+  .nav-link {
+    justify-content: center;
+    gap: 0;
+    padding: var(--space-3) 0;
+    /* icon-only: visually hide the label, keep it for the a11y tree */
+    font-size: 0;
+  }
+  .nav-link svg {
+    width: 18px;
+    height: 18px;
+  }
+  .sidebar__foot {
+    padding: var(--space-3) var(--space-2);
+    align-items: center;
+  }
+  .sidebar__signout {
+    align-self: center;
+    font-size: 10px;
+    padding: var(--space-1) var(--space-2);
+    white-space: normal;
+    text-align: center;
+  }
+  .shell__content {
+    padding: var(--space-3);
+  }
+  .topbar {
+    padding: 0 var(--space-3);
+  }
+}

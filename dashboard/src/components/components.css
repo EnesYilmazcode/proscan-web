@@ -1,0 +1,403 @@
+/* Shared component styles — tokens only, no raw hex. */
+
+/* ── Button ─────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 32px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.btn--primary {
+  background: var(--gold);
+  color: var(--ink);
+  border-color: var(--gold);
+}
+.btn--primary:hover:not(:disabled) {
+  background: var(--gold-hover);
+  border-color: var(--gold-hover);
+}
+.btn--primary:active:not(:disabled) {
+  background: var(--gold-pressed);
+  border-color: var(--gold-pressed);
+}
+.btn--ghost {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line);
+}
+.btn--ghost:hover:not(:disabled) {
+  background: var(--gold-wash);
+  border-color: var(--gold);
+}
+.btn--danger {
+  background: var(--red);
+  color: var(--surface);
+  border-color: var(--red);
+}
+.btn--danger:hover:not(:disabled) {
+  filter: brightness(0.94);
+}
+.btn--sm {
+  height: 26px;
+  padding: 0 var(--space-3);
+  font-size: 12px;
+}
+
+/* ── Chip / Tag ─────────────────────────────────────────────────── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 22px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 550;
+  white-space: nowrap;
+}
+.chip--gold {
+  border-color: var(--gold);
+  background: var(--gold-wash);
+  color: var(--ink);
+}
+.chip--green {
+  border-color: var(--green);
+  background: var(--green-soft);
+  color: var(--green);
+}
+.chip--red {
+  border-color: var(--red);
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 20px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.tag__swatch {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--tag-color, var(--muted));
+  flex: none;
+}
+
+/* ── DeltaBadge (buyer semantics: price drop = green) ───────────── */
+.delta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: default;
+}
+.delta--good {
+  color: var(--green);
+}
+.delta--bad {
+  color: var(--red);
+}
+.delta--flat {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* ── MoneyCell ──────────────────────────────────────────────────── */
+.money {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
+}
+.money--strong {
+  font-weight: 600;
+}
+.money--muted {
+  color: var(--muted);
+}
+
+/* ── Max Buy pill (signature element) ───────────────────────────── */
+.maxbuy {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 26px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* ── Drawer (480px right slide-over) ────────────────────────────── */
+.drawer-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(35, 44, 53, 0.42);
+  z-index: 60;
+  animation: drawer-scrim-in var(--dur-drawer) ease both;
+}
+@keyframes drawer-scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 480px;
+  max-width: 92vw;
+  background: var(--surface);
+  border-left: 1px solid var(--line);
+  box-shadow: var(--shadow-drawer);
+  z-index: 61;
+  display: flex;
+  flex-direction: column;
+  animation: drawer-in var(--dur-drawer) var(--ease-drawer) both;
+}
+@keyframes drawer-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+.drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--line);
+  flex: none;
+}
+.drawer__title {
+  font-size: 16px;
+  font-weight: 700;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.drawer__close {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+.drawer__close:hover {
+  background: var(--gold-wash);
+  border-color: var(--gold);
+  color: var(--ink);
+}
+.drawer__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-5);
+}
+
+/* ── EmptyState ─────────────────────────────────────────────────── */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 360px;
+  margin: var(--space-7) auto;
+  padding: var(--space-5);
+  color: var(--ink);
+}
+.empty__icon {
+  color: var(--muted);
+  margin-bottom: var(--space-4);
+}
+.empty__title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+}
+.empty__body {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: var(--space-4);
+}
+
+/* ── Skeleton (gold-tinted scan sweep) ──────────────────────────── */
+.skeleton {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    100deg,
+    var(--line) 35%,
+    var(--gold-wash) 50%,
+    var(--line) 65%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-scan 1.8s linear infinite;
+}
+.skeleton--row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: var(--row-height);
+  padding: var(--cell-pad);
+  border-bottom: 1px solid var(--line);
+}
+.skeleton--row > .skeleton {
+  height: 12px;
+}
+
+/* ── StatusDot ──────────────────────────────────────────────────── */
+.status-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 550;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.status-dot::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex: none;
+}
+.status-dot--active::before {
+  background: var(--gold);
+  animation: status-pulse 1.2s ease-in-out infinite;
+}
+.status-dot--complete::before {
+  background: var(--green);
+}
+.status-dot--stopped::before {
+  background: var(--muted);
+}
+.status-dot--dead::before {
+  background: var(--red);
+}
+@keyframes status-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--gold-glow);
+  }
+  50% {
+    box-shadow: 0 0 0 4px var(--gold-glow);
+  }
+}
+
+/* ── PageHeader ─────────────────────────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+.page-header__title {
+  font-size: var(--page-title);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.page-header__sub {
+  margin-top: var(--space-1);
+  font-size: 13px;
+  color: var(--muted);
+}
+.page-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: none;
+}
+
+/* Narrow viewports: title stacks above the actions row, which wraps. */
+@media (max-width: 760px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .page-header__actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}
+
+/* ── KeyValue mini-stat ─────────────────────────────────────────── */
+.kv {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.kv__label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.kv__value {
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--ink);
+}
+.kv__value--mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,305 @@
+/* Delta board — the products table feature. Tokens only (tokens.css). */
+
+/* ── card + scroll region ───────────────────────────────────────── */
+.board-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* Internal scroller so the thead can stick and the row virtualizer has
+   a stable scroll element. */
+.board-scroll {
+  overflow: auto;
+  max-height: calc(100vh - 210px);
+  min-height: 190px;
+}
+
+/* ── table ──────────────────────────────────────────────────────── */
+.board-table {
+  width: 100%;
+  min-width: 1320px;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--table-font);
+}
+
+.board-table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface);
+  padding: var(--cell-pad);
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Rows are EXACTLY 38px (virtualizer contract): vertical centering via
+   the fixed cell height instead of vertical padding so no cell content
+   (26px pill / 26px thumb) can stretch a row. */
+.board-table td {
+  height: var(--row-height);
+  padding: 0 var(--space-3);
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.board-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Virtualizer spacer rows — height comes from the inline style. */
+.board-table td.board-spacer {
+  padding: 0;
+  border-bottom: none;
+}
+
+/* Row hover = faint gold wash, no transform (instrument-like). */
+.board-row {
+  cursor: pointer;
+}
+.board-row:hover {
+  background: var(--gold-wash);
+}
+.board-row:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+}
+
+.board-cell--num {
+  text-align: right;
+}
+
+.board-dim {
+  color: var(--muted);
+}
+
+/* ── sortable header buttons ────────────────────────────────────── */
+.board-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.board-sort:hover {
+  color: var(--ink);
+}
+.board-sort__arrow {
+  font-size: 9px;
+  opacity: 0.4;
+}
+.board-sort__arrow--on {
+  opacity: 1;
+  color: var(--gold-pressed);
+}
+
+/* ── product cell (thumb + name + copyable ASIN) ────────────────── */
+.board-prod {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.board-prod__img {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  object-fit: contain;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.board-prod__img--blank {
+  background: var(--bg);
+}
+.board-prod__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.board-prod__name {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.board-asin {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 10.5px;
+  line-height: 1.2;
+  color: var(--muted);
+  cursor: copy;
+}
+.board-asin:hover {
+  color: var(--ink);
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+.board-asin--copied,
+.board-asin--copied:hover {
+  color: var(--green);
+}
+
+/* ── price / paired numeric cells ───────────────────────────────── */
+.board-price {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+.board-price__list {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  color: var(--muted);
+}
+.board-pair {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+/* ── tags cell ──────────────────────────────────────────────────── */
+.board-tags {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.board-tags-more {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* ── toolbar (PageHeader actions slot) ──────────────────────────── */
+.board-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.board-search {
+  height: 32px;
+  width: 190px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+}
+.board-search::placeholder {
+  color: var(--muted);
+}
+.board-search:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px var(--gold-glow);
+}
+
+/* Latest | Movers segmented toggle — gold active segment. */
+.board-seg {
+  display: inline-flex;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  overflow: hidden;
+}
+.board-seg__btn {
+  border: none;
+  background: none;
+  padding: 0 var(--space-3);
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--muted);
+  cursor: pointer;
+}
+.board-seg__btn + .board-seg__btn {
+  border-left: 1px solid var(--line);
+}
+.board-seg__btn--on {
+  background: var(--gold);
+  color: var(--ink);
+}
+.board-seg__btn--on:hover {
+  background: var(--gold-hover);
+}
+
+.board-select {
+  height: 32px;
+  max-width: 200px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  cursor: pointer;
+}
+.board-select:hover {
+  border-color: var(--gold);
+}
+
+/* ── buyer-semantics legend popover ─────────────────────────────── */
+.board-legend {
+  position: relative;
+}
+.board-legend__pop {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  z-index: 50;
+  width: 300px;
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: normal;
+  text-align: left;
+}
+.board-legend__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.board-legend__row .delta {
+  flex: none;
+}
+.board-legend__note {
+  color: var(--muted);
+}

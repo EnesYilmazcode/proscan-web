@@ -207,7 +207,22 @@ await pages.doc('p0003').set({
 // ── products (§4.6) — 12 docs, asin field == doc id ──────────────────────────
 const products = ws.collection('products');
 const SRC = ['s_A3K9XELT4QZ6M2'];
-const img = (slug) => `https://m.media-amazon.com/images/I/${slug}._AC_UL320_.jpg`;
+
+// Deterministic inline-SVG monogram thumbnails (fake Amazon CDN slugs 404
+// and spam the browser console / break screenshots). Same slug -> same data
+// URI, so re-seeding stays byte-identical.
+const IMG_PALETTE = ['#f0c14b', '#0a7d4f', '#2a6f97', '#7d5ba6', '#b35c00', '#5a646e'];
+const img = (slug) => {
+  let h = 0;
+  for (const c of slug) h = (h * 31 + c.charCodeAt(0)) % 997;
+  const bg = IMG_PALETTE[h % IMG_PALETTE.length];
+  const txt = (slug.replace(/[^A-Za-z]/g, '').slice(0, 2) || 'PS').toUpperCase();
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">` +
+    `<rect width="64" height="64" rx="8" fill="${bg}"/>` +
+    `<text x="32" y="42" font-family="monospace" font-size="26" font-weight="bold" text-anchor="middle" fill="#fff">${txt}</text></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+};
 const leadOf = (stage, stageChangedAtIso, extra = {}) => ({
   stage,
   stageChangedAt: ts(stageChangedAtIso),
@@ -488,10 +503,15 @@ await products.doc('B0C8XL4N2P').collection('history').doc('daily').set({
   },
 });
 
+// Weekly series (6 points) — the 2026-06-02 / 2026-06-09 values stay in
+// lock-step with the product doc's prev / latest blocks above.
 await products.doc('B0B7QK9M1T').collection('history').doc('daily').set({
   asin: 'B0B7QK9M1T',
   d: {
     '2026-05-05': { p: 2249, r: 4.1, v: 38, rk: 120 },
+    '2026-05-12': { p: 2199, r: 4.1, v: 44, rk: 116 },
+    '2026-05-19': { p: 2149, r: 4.2, v: 51, rk: 110 },
+    '2026-05-26': { p: 2120, r: 4.2, v: 57, rk: 107 },
     '2026-06-02': { p: 2099, r: 4.2, v: 64, rk: 102 },
     '2026-06-09': { p: 1899, r: 4.2, v: 76, rk: 97,
                     sc: 6, mn: 1699, mx: 2399, md: 1899, cv: 0.11, oc: 6, fba: 4, az: 0 },
@@ -501,6 +521,10 @@ await products.doc('B0B7QK9M1T').collection('history').doc('daily').set({
 await products.doc('B0CN5P2W7H').collection('history').doc('daily').set({
   asin: 'B0CN5P2W7H',
   d: {
+    '2026-05-05': { p: 3699, r: 4.4, v: 561, rk: 9 },
+    '2026-05-12': { p: 3649, r: 4.4, v: 570, rk: 8 },
+    '2026-05-19': { p: 3599, r: 4.4, v: 581, rk: 8 },
+    '2026-05-26': { p: 3580, r: 4.4, v: 590, rk: 7 },
     '2026-06-02': { p: 3599, r: 4.4, v: 598, rk: 6 },
     '2026-06-09': { p: 3249, r: 4.4, v: 612, rk: 3,
                     sc: 9, mn: 2999, mx: 3899, md: 3249, cv: 0.09, oc: 9, fba: 7, az: 1 },
@@ -511,6 +535,9 @@ await products.doc('B08ZQR5V1M').collection('history').doc('daily').set({
   asin: 'B08ZQR5V1M',
   d: {
     '2026-05-05': { p: 2399, r: 4.8, v: 2105, rk: 7 },
+    '2026-05-12': { p: 2449, r: 4.8, v: 2141, rk: 6 },
+    '2026-05-19': { p: 2399, r: 4.8, v: 2178, rk: 5 },
+    '2026-05-26': { p: 2475, r: 4.8, v: 2204, rk: 5 },
     '2026-06-02': { p: 2499, r: 4.8, v: 2230, rk: 4 },
     '2026-06-09': { p: 2750, lp: 2999, r: 4.8, v: 2304, rk: 4,
                     sc: 11, mn: 2399, mx: 3199, md: 2699, cv: 0.16, oc: 11, fba: 5, az: 0 },
@@ -571,8 +598,368 @@ await products.doc('B0C8XL4N2P').collection('events').doc('1749500000000_k3xq').
   note: 'good CV, crowded but watch',
 });
 
+// ════════════════════════════════════════════════════════════════════════════
+// QA ENRICHMENT FIXTURES — integration-test breadth. Idempotent fixed IDs,
+// deterministic values (no RNG), data-model.md §4 shapes throughout.
+// ~40 products across both sources, ~15 weekly history series (6–10 points),
+// ~10 full spread/scores/verdict blocks, varied lead stages/tags, plus two
+// extra storefront run headers (one live 'active' 4/9) and one keyword run.
+// ════════════════════════════════════════════════════════════════════════════
+
+const SF = 's_A3K9XELT4QZ6M2';
+const KW = 'k_wireless-earbuds';
+
+const RUN0 = 's_A3K9XELT4QZ6M2_1779544860000'; // dayKey 2026-05-26 (complete)
+const RUN3 = 's_A3K9XELT4QZ6M2_1781081232000'; // dayKey 2026-06-11 (ACTIVE 4/9)
+const KRUN = 'k_wireless-earbuds_1781001000000'; // dayKey 2026-06-10 (complete)
+// Older keyword run whose header was trimmed — referenced by prev.runId /
+// firstRunId on keyword products only (the dashboard never joins on it).
+const KRUN_PREV = 'k_wireless-earbuds_1780396320000';
+
+const RUN1_AT = '2026-06-02T13:59:41Z';
+const RUN2_AT = '2026-06-09T14:04:53Z';
+const KRUN_AT = '2026-06-10T10:38:21Z';
+const KPREV_AT = '2026-06-03T10:32:11Z';
+
+// ── extra runs (§4.4) ────────────────────────────────────────────────────────
+await ws.collection('runs').doc(RUN0).set({
+  runId: RUN0,
+  sourceId: SF,
+  source: runSource,
+  mk: 'US',
+  dayKey: '2026-05-26',
+  startedAt: ts('2026-05-26T14:01:00Z'),
+  finishedAt: ts('2026-05-26T14:15:48Z'),
+  status: 'complete',
+  pagesDone: 9,
+  pagesPlanned: 9,
+  totalResultsOnSerp: 409,
+  counters: { placements: 438, uniqueAsins: 405, sponsored: 31, priceParseFailures: 2, newSeen: 7 },
+  label: 'Baseline crawl',
+});
+
+// The live run — drives the active StatusDot pulse + gold progress bar.
+// startedAt is the seed's ONE wall-clock-relative value (doc ID stays fixed,
+// so re-seeding never duplicates): an 'active' run must read like a scan
+// that began minutes ago and bucket under "Today" whenever it is seeded.
+const RUN3_STARTED = Timestamp.fromMillis(Date.now() - 6 * 60 * 1000);
+await ws.collection('runs').doc(RUN3).set({
+  runId: RUN3,
+  sourceId: SF,
+  source: runSource,
+  mk: 'US',
+  dayKey: new Date(RUN3_STARTED.toMillis()).toISOString().slice(0, 10),
+  startedAt: RUN3_STARTED,
+  finishedAt: null,
+  status: 'active',
+  pagesDone: 4,
+  pagesPlanned: 9,
+  totalResultsOnSerp: 412,
+  counters: { placements: 196, uniqueAsins: 187, sponsored: 14, priceParseFailures: 1, newSeen: 3 },
+  label: null,
+});
+
+await ws.collection('runs').doc(KRUN).set({
+  runId: KRUN,
+  sourceId: KW,
+  source: {
+    type: 'keyword',
+    sellerId: null,
+    keyword: 'wireless earbuds',
+    url: 'https://www.amazon.com/s?k=wireless+earbuds',
+  },
+  mk: 'US',
+  dayKey: '2026-06-10',
+  startedAt: ts('2026-06-10T10:30:00Z'),
+  finishedAt: ts('2026-06-10T10:41:30Z'),
+  status: 'complete',
+  pagesDone: 7,
+  pagesPlanned: 7,
+  totalResultsOnSerp: 1184,
+  counters: { placements: 322, uniqueAsins: 286, sponsored: 58, priceParseFailures: 2, newSeen: 41 },
+  label: null,
+});
+
+// Keyword source has now been scanned — mirror the run onto its watch fields.
+await ws.collection('sources').doc(KW).set(
+  {
+    catalogSize: 1184,
+    lastRunId: KRUN,
+    lastScrapedAt: ts('2026-06-10T10:41:30Z'),
+  },
+  { merge: true },
+);
+
+// ── enriched products (§4.6/§4.7) — spec-driven, deterministic ───────────────
+
+/** Weekly dayKeys ascending, ending at endKey. */
+const weeklyKeys = (endKey, n) => {
+  const end = Date.parse(`${endKey}T00:00:00Z`);
+  return Array.from({ length: n }, (_, i) =>
+    new Date(end - (n - 1 - i) * 7 * 86400000).toISOString().slice(0, 10),
+  );
+};
+
+/** Deterministic ±50¢ wobble derived from the ASIN — no RNG, so re-seeding
+ *  produces byte-identical history series. */
+const wob = (asin, i) =>
+  (((asin.charCodeAt(2) + asin.charCodeAt(5) + i * 7) % 5) - 2) * 25;
+
+const round5 = (n) => Math.round(n / 5) * 5;
+
+/**
+ * Writes one product doc (+ optional history/daily) from a compact spec:
+ * { asin, name, p, lp?, r, v, rk, b?, pr?, src: 'sf'|'kw'|'both',
+ *   weeks?  — >=2 seeds a weekly history/daily series ending at the latest run,
+ *   startP? — first history price (default p × 1.14),
+ *   prevP?  — forces prev.p (and the second-to-last history point),
+ *   spread? — {sc,mn,mx,md,cv,fba,az,status,fired,opp,maxBuy,...} -> full
+ *             spread + scores + verdict blocks,
+ *   stage?, stageAt?, leadExtra?, tags? }
+ * No weeks and no prevP -> "new this run" (no prev/delta), like §4.6.
+ */
+async function seedEnriched(spec) {
+  const kw = spec.src === 'kw';
+  const sourceIds = spec.src === 'both' ? [SF, KW] : kw ? [KW] : [SF];
+  const endKey = kw ? '2026-06-10' : '2026-06-09';
+  const prevKey = kw ? '2026-06-03' : '2026-06-02';
+  const latestRun = kw ? KRUN : RUN2;
+  const prevRun = kw ? KRUN_PREV : RUN1;
+  const latestAtIso = kw ? KRUN_AT : RUN2_AT;
+  const prevAtIso = kw ? KPREV_AT : RUN1_AT;
+  const spreadAtIso = kw ? '2026-06-10T10:44:02Z' : '2026-06-09T14:11:02Z';
+  const verdictAtIso = kw ? '2026-06-10T18:02:00Z' : '2026-06-09T18:02:00Z';
+
+  const weeks = spec.weeks ?? 0;
+
+  const latest = {
+    p: spec.p,
+    r: spec.r,
+    v: spec.v,
+    pr: spec.pr ?? 1,
+    rk: spec.rk,
+    at: ts(latestAtIso),
+    runId: latestRun,
+    dayKey: endKey,
+  };
+  if (spec.lp) latest.lp = spec.lp;
+  if (spec.b) latest.b = spec.b;
+
+  let historyD = null;
+  let prevPoint = null;
+
+  if (weeks >= 2) {
+    const keys = weeklyKeys(endKey, weeks);
+    const p0 = spec.startP ?? round5(Math.round(spec.p * 1.14));
+    const prices = keys.map((_, i) => {
+      if (i === keys.length - 1) return spec.p;
+      const t = i / (keys.length - 1);
+      return Math.max(99, round5(p0 + (spec.p - p0) * t) + wob(spec.asin, i));
+    });
+    if (spec.prevP !== undefined) prices[keys.length - 2] = spec.prevP;
+    const vStep = Math.max(1, Math.round(spec.v * 0.012));
+    const rAt = (i) =>
+      Math.round((spec.r - 0.1 * Math.min(2, keys.length - 1 - i)) * 10) / 10;
+    historyD = {};
+    keys.forEach((k, i) => {
+      const point = {
+        p: prices[i],
+        r: rAt(i),
+        v: spec.v - (keys.length - 1 - i) * vStep,
+        rk: spec.rk + (keys.length - 1 - i),
+      };
+      if (i === keys.length - 1) {
+        if (spec.lp) point.lp = spec.lp;
+        if (spec.b) point.b = spec.b;
+        if (spec.spread) {
+          const s = spec.spread;
+          // az is NUMERIC 0/1 in history points (boolean only on product.spread)
+          Object.assign(point, {
+            sc: s.sc, mn: s.mn, mx: s.mx, md: s.md, cv: s.cv,
+            oc: s.oc ?? s.sc, fba: s.fba, az: s.az ? 1 : 0,
+          });
+        }
+      }
+      historyD[k] = point;
+    });
+    prevPoint = {
+      p: prices[keys.length - 2],
+      r: rAt(keys.length - 2),
+      v: spec.v - vStep,
+      rk: spec.rk + 1,
+      at: ts(prevAtIso),
+      runId: prevRun,
+      dayKey: prevKey,
+    };
+  } else if (spec.prevP !== undefined) {
+    prevPoint = {
+      p: spec.prevP,
+      r: spec.prevR ?? spec.r,
+      v: Math.max(0, spec.v - Math.max(1, Math.round(spec.v * 0.012))),
+      rk: spec.rk + 2,
+      at: ts(prevAtIso),
+      runId: prevRun,
+      dayKey: prevKey,
+    };
+  }
+
+  const docData = {
+    asin: spec.asin,
+    mk: 'US',
+    name: spec.name,
+    img: img(spec.asin),
+    url: `https://www.amazon.com/dp/${spec.asin}`,
+    latest,
+    lead: leadOf(spec.stage ?? 'new', spec.stageAt ?? latestAtIso, spec.leadExtra ?? {}),
+    tags: spec.tags ?? [],
+    sourceIds,
+    firstSeenAt: ts(
+      weeks >= 2 ? `${weeklyKeys(endKey, weeks)[0]}T12:00:00Z` : latestAtIso,
+    ),
+    firstRunId:
+      weeks >= 2 || prevPoint
+        ? kw
+          ? KRUN_PREV
+          : 's_A3K9XELT4QZ6M2_1743938400000'
+        : latestRun,
+  };
+
+  if (prevPoint) {
+    docData.prev = prevPoint;
+    docData.delta = {
+      p: spec.p - prevPoint.p,
+      pPct: Math.round(((spec.p - prevPoint.p) / prevPoint.p) * 1000) / 10,
+      r: Math.round((spec.r - prevPoint.r) * 10) / 10,
+      v: spec.v - prevPoint.v,
+      days: 7,
+    };
+  }
+
+  if (spec.spread) {
+    const s = spec.spread;
+    const oc = s.oc ?? s.sc;
+    const opp = s.opp ?? 5.0;
+    const arb = s.arb ?? Math.round(opp * 9) / 10;
+    docData.spread = {
+      sc: s.sc,
+      mn: s.mn,
+      mx: s.mx,
+      md: s.md,
+      mean: s.mean ?? Math.round((s.mn + s.mx + 2 * s.md) / 4),
+      sd: s.sd ?? Math.round((s.mx - s.mn) / 4),
+      cv: s.cv,
+      iqr: s.iqr ?? Math.round((s.mx - s.mn) / 3),
+      oc,
+      fba: s.fba,
+      fbm: oc - s.fba,
+      az: s.az ?? false, // BOOLEAN on the product doc
+      bb: { p: s.bb ?? s.md, sellerId: s.bbSeller ?? 'A9XK2M4L1P8Q', fba: s.bbFba ?? true },
+      at: ts(spreadAtIso),
+      runId: latestRun,
+    };
+    docData.scores = {
+      opportunity: opp,
+      arbitrage: arb,
+      combined: Math.round((opp * 0.6 + arb * 0.4) * 10) / 10,
+      maxBuy: s.maxBuy ?? round5(Math.round(s.md * 0.58)),
+      at: ts(spreadAtIso),
+    };
+    docData.verdict = {
+      status: s.status ?? 'pass',
+      ruleSetId: 'default',
+      fired: s.fired ?? null,
+      at: ts(verdictAtIso),
+    };
+  }
+
+  await products.doc(spec.asin).set(docData);
+  if (historyD) {
+    await products
+      .doc(spec.asin)
+      .collection('history')
+      .doc('daily')
+      .set({ asin: spec.asin, d: historyD });
+  }
+}
+
+const ENRICHED = [
+  // ── storefront (BrickHouse Deals — kitchen) ────────────────────────────────
+  { asin: 'B0G4WN8XQ1', src: 'sf', name: 'KitchenAid Classic 4.5qt Stand Mixer', p: 27999, lp: 32999, r: 4.7, v: 8412, rk: 7, weeks: 8,
+    spread: { sc: 17, mn: 25900, mx: 33900, md: 27950, cv: 0.18, fba: 11, az: true, status: 'warn', fired: 'Amazon on listing', opp: 6.4, maxBuy: 16210 },
+    stage: 'reviewing', stageAt: '2026-06-09T19:12:00Z', tags: ['kitchen', 'premium'] },
+  { asin: 'B0H2TR5MK8', src: 'sf', name: 'Pyrex 18-Piece Glass Food Storage Set', p: 3499, lp: 4499, r: 4.8, v: 12044, rk: 9, weeks: 10,
+    spread: { sc: 12, mn: 3199, mx: 4699, md: 3549, cv: 0.17, fba: 8, az: false, status: 'pass', opp: 7.8, maxBuy: 2060 },
+    stage: 'approved', stageAt: '2026-06-10T08:30:00Z', tags: ['kitchen', 'tier-A'] },
+  { asin: 'B09KQW7Y3D', src: 'sf', name: 'Instant Pot Duo 7-in-1 Pressure Cooker 6qt', p: 7999, lp: 9999, r: 4.7, v: 154211, rk: 2, b: 5000, weeks: 9,
+    spread: { sc: 21, mn: 6999, mx: 9899, md: 7949, cv: 0.16, fba: 13, az: false, status: 'pass', opp: 8.1, maxBuy: 4610 },
+    stage: 'reviewing', stageAt: '2026-06-09T20:01:00Z', tags: ['kitchen', 'tier-A'] },
+  { asin: 'B0FJX3P8VL', src: 'sf', name: 'Rubbermaid Brilliance 10pc Pantry Set', p: 2899, r: 4.9, v: 3320, rk: 21, prevP: 3199,
+    stage: 'new', tags: ['kitchen'] },
+  { asin: 'B08MV4N6TQ', src: 'sf', name: 'Hamilton Beach 2-Slice Toaster', p: 2249, lp: 2799, r: 4.4, v: 9870, rk: 33, weeks: 6, startP: 2999, prevP: 2799,
+    stage: 'rejected', stageAt: '2026-06-09T21:14:00Z', leadExtra: { rejectedReason: 'margin too thin after fees' }, tags: ['budget'] },
+  { asin: 'B0CYD8K2RH', src: 'sf', name: 'Le Creuset Silicone Spatula Craft Series', p: 1450, r: 4.8, v: 540, rk: 75, prevP: 1450,
+    stage: 'approved', stageAt: '2026-06-08T15:00:00Z', tags: ['kitchen', 'premium'] },
+  { asin: 'B07GN5XW2B', src: 'sf', name: 'OXO Good Grips Salad Spinner', p: 2999, r: 4.8, v: 21055, rk: 14, weeks: 8,
+    stage: 'purchased', stageAt: '2026-06-07T11:40:00Z',
+    leadExtra: { buyPrice: 1850, qty: 18, supplier: 'HomeGoods', orderRef: 'PO-0044' }, tags: ['kitchen', 'tier-A'] },
+  { asin: 'B0DKR7L4WX', src: 'sf', name: 'ThermoPro TP19 Instant-Read Meat Thermometer', p: 1699, lp: 2499, r: 4.6, v: 28930, rk: 11, b: 3000, weeks: 9,
+    spread: { sc: 9, mn: 1549, mx: 2199, md: 1699, cv: 0.08, fba: 6, az: false, status: 'warn', fired: 'CV 0.08 < min 0.15', opp: 4.6, maxBuy: 985 },
+    stage: 'reviewing', stageAt: '2026-06-10T07:55:00Z', tags: ['kitchen'] },
+  { asin: 'B0BHT6Q9ZF', src: 'sf', name: 'Caraway Nonstick Ceramic Frying Pan 10.5"', p: 9500, lp: 10500, r: 4.5, v: 1860, rk: 41,
+    stage: 'new', tags: ['premium'] },
+  { asin: 'B09ZV3M8LD', src: 'sf', name: 'Brita Standard 10-Cup Water Pitcher', p: 1899, r: 4.6, v: 88412, rk: 5, b: 10000, prevP: 1799,
+    stage: 'archived', stageAt: '2026-05-30T09:00:00Z', tags: [] },
+  { asin: 'B0AQN2C7JS', src: 'sf', name: 'Simple Modern 24oz Insulated Tumbler', p: 1799, lp: 2199, r: 4.7, v: 6230, rk: 17, weeks: 8,
+    spread: { sc: 13, mn: 1599, mx: 2399, md: 1849, cv: 0.19, fba: 7, az: false, status: 'pass', opp: 7.1, maxBuy: 1070 },
+    stage: 'approved', stageAt: '2026-06-09T22:05:00Z', tags: ['kitchen', 'q3'] },
+  { asin: 'B08WJR9T4Y', src: 'sf', name: 'Bentgo Kids Leak-Proof Lunch Box', p: 2799, lp: 3999, r: 4.8, v: 33120, rk: 25, prevP: 2999,
+    stage: 'reviewing', stageAt: '2026-06-09T18:47:00Z',
+    leadExtra: { notes: 'school season Q3 ramp — recheck stock depth' }, tags: ['tier-A'] },
+  { asin: 'B0EYW5H8NC', src: 'sf', name: 'Misen 8" Chef\'s Knife', p: 6500, r: 4.7, v: 990, rk: 88,
+    stage: 'new', tags: ['premium'] },
+  { asin: 'B07ZSD4Q1V', src: 'sf', name: 'Crock-Pot 7qt Oval Slow Cooker', p: 3499, lp: 4499, r: 4.7, v: 41200, rk: 19, prevP: 3299,
+    stage: 'rejected', stageAt: '2026-06-09T19:30:00Z', leadExtra: { rejectedReason: 'seasonal demand only' }, tags: ['kitchen'] },
+  { asin: 'B0CGL9X2TM', src: 'sf', name: 'Vitamix E310 Explorian Blender', p: 28995, lp: 34995, r: 4.7, v: 11540, rk: 12, weeks: 10,
+    spread: { sc: 8, mn: 27500, mx: 31999, md: 28995, cv: 0.05, fba: 6, az: false, status: 'warn', fired: 'CV 0.05 < min 0.15', opp: 3.9, maxBuy: 16820 },
+    stage: 'purchased', stageAt: '2026-06-06T10:22:00Z',
+    leadExtra: { buyPrice: 19999, qty: 4, supplier: 'Costco roadshow', orderRef: 'PO-0045' },
+    tags: ['kitchen', 'premium', 'tier-A'] },
+  { asin: 'B06XKP3R8M', src: 'sf', name: 'Lodge 6qt Enameled Dutch Oven', p: 7990, lp: 9995, r: 4.6, v: 17840, rk: 28, prevP: 8490,
+    stage: 'new', tags: ['kitchen'] },
+
+  // ── keyword ("wireless earbuds") ───────────────────────────────────────────
+  { asin: 'B0KWX8N3JP', src: 'kw', name: 'Sony WF-1000XM5 Noise Canceling Earbuds', p: 24800, lp: 29999, r: 4.4, v: 9320, rk: 1, b: 2000, weeks: 8,
+    stage: 'reviewing', stageAt: '2026-06-10T12:10:00Z', tags: ['audio', 'premium'] },
+  { asin: 'B0JQM4T7RD', src: 'kw', name: 'Apple AirPods Pro 2 (USB-C)', p: 18999, lp: 24900, r: 4.7, v: 124550, rk: 2, b: 10000, weeks: 10, startP: 24900,
+    stage: 'rejected', stageAt: '2026-06-10T13:02:00Z', leadExtra: { rejectedReason: 'gated brand' }, tags: ['audio'] },
+  { asin: 'B0HPL2V9KX', src: 'kw', name: 'Samsung Galaxy Buds3', p: 11999, lp: 17999, r: 4.5, v: 8120, rk: 3, prevP: 13499,
+    stage: 'reviewing', stageAt: '2026-06-10T12:30:00Z', tags: ['audio'] },
+  { asin: 'B0GTZ6W4QN', src: 'kw', name: 'Beats Studio Buds Plus', p: 12995, lp: 16995, r: 4.4, v: 41230, rk: 5, prevP: 12995,
+    stage: 'new', tags: ['audio'] },
+  { asin: 'B0FDK9R2MV', src: 'kw', name: 'JLab Go Air Pop True Wireless Earbuds', p: 1988, lp: 2499, r: 4.4, v: 230540, rk: 6, b: 10000, weeks: 9,
+    stage: 'approved', stageAt: '2026-06-10T14:15:00Z', tags: ['audio', 'budget'] },
+  { asin: 'B0ENB5X8WT', src: 'kw', name: 'TOZO T6 Wireless Earbuds', p: 2399, lp: 3599, r: 4.4, v: 312080, rk: 8, weeks: 8,
+    stage: 'purchased', stageAt: '2026-06-05T09:18:00Z',
+    leadExtra: { buyPrice: 1500, qty: 30, supplier: 'AliExpress sample', orderRef: 'PO-0046' }, tags: ['audio', 'budget'] },
+  { asin: 'B0DRC3K7LH', src: 'kw', name: 'Skullcandy Dime 3 In-Ear Earbuds', p: 2488, r: 4.3, v: 18450, rk: 11,
+    stage: 'new', tags: ['budget'] },
+  { asin: 'B0CVF7M1XS', src: 'kw', name: 'Bose QuietComfort Ultra Earbuds', p: 24900, lp: 29900, r: 4.3, v: 6890, rk: 4, weeks: 7,
+    stage: 'reviewing', stageAt: '2026-06-10T15:44:00Z',
+    leadExtra: { notes: 'price floor watch — MAP enforced?' }, tags: ['audio', 'premium'] },
+  { asin: 'B0BXG5T9PW', src: 'kw', name: 'Anker Soundcore Life P3 Earbuds', p: 6999, lp: 7999, r: 4.5, v: 28760, rk: 9, prevP: 7499,
+    stage: 'archived', stageAt: '2026-06-01T17:00:00Z', tags: ['audio'] },
+  { asin: 'B0AHJ8Q4ZC', src: 'kw', name: 'JBL Tune Flex True Wireless Earbuds', p: 6995, lp: 9995, r: 4.4, v: 11290, rk: 12,
+    stage: 'new', tags: ['audio'] },
+  { asin: 'B09WSN6Y2F', src: 'kw', name: 'Raycon Everyday Earbuds', p: 7999, lp: 11999, r: 4.3, v: 71230, rk: 14, prevP: 7499,
+    stage: 'rejected', stageAt: '2026-06-10T16:20:00Z', leadExtra: { rejectedReason: 'review velocity stalling' }, tags: ['audio'] },
+];
+
+for (const spec of ENRICHED) await seedEnriched(spec);
+
+const enrichedHistories = ENRICHED.filter((s) => (s.weeks ?? 0) >= 2).length;
+
 console.log('seed complete:');
-console.log('  users: 1, workspaces: 1, sources: 2, runs: 2, pages: 3');
-console.log('  products: 12, history/daily: 4, offerSnapshots: 1');
+console.log('  users: 1, workspaces: 1, sources: 2, runs: 5, pages: 3');
+console.log(`  products: ${12 + ENRICHED.length}, history/daily: ${4 + enrichedHistories}, offerSnapshots: 1`);
 console.log('  sellers: 1, rules: 1, views: 1, events: 1');
 console.log(`  workspace: workspaces/${WID} (dev@proscan.test / proscan-dev)`);

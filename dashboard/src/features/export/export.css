@@ -1,0 +1,20 @@
+/* Export feature styles — tokens only, no raw hex. */
+
+/* Row-count badge inside the gold Export XLSX button: ink pill, mono
+   tabular numerals — instrument-style counter on the gold control. */
+.export-btn__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--ink);
+  color: var(--gold);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}

@@ -1,0 +1,151 @@
+/* Run Inbox — instrument cards in a single 760px column with date group
+   headers. Tokens only (theme/tokens.css); no raw hex. */
+
+.runs-list {
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* ── date group header (Today / This week / Earlier) ────────────── */
+.runs-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.runs-group:first-child {
+  margin-top: 0;
+}
+.runs-group::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+/* ── card ───────────────────────────────────────────────────────── */
+.run-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-4);
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+button.run-card:hover {
+  background: var(--gold-wash);
+  border-color: var(--gold);
+}
+.run-card--dead {
+  opacity: 0.6;
+}
+.run-card--skeleton {
+  cursor: default;
+}
+
+.run-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.run-card__title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.run-card__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ── counters strip ─────────────────────────────────────────────── */
+.run-card__counters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  font-size: 12px;
+  color: var(--muted);
+}
+.run-card__count {
+  white-space: nowrap;
+}
+.run-card__num {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ── thin animated gold progress bar (active runs) ──────────────── */
+.run-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--line);
+}
+.run-progress__fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--gold),
+    var(--gold-glow),
+    var(--gold)
+  );
+  background-size: 200% 100%;
+  animation: run-progress-sweep 1.6s linear infinite;
+  transition: width 240ms ease;
+}
+@keyframes run-progress-sweep {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ── inline query-error notice ──────────────────────────────────── */
+.runs-error {
+  max-width: 760px;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--red);
+  border-radius: var(--radius-sm);
+  background: var(--red-soft);
+  color: var(--red);
+  font-size: 13px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .run-progress__fill {
+    animation: none;
+  }
+}

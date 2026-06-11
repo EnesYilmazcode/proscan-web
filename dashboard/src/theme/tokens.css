@@ -1,0 +1,62 @@
+/* ProScan Dashboard design tokens — the single source of truth.
+   Components consume ONLY these custom properties; no hardcoded hex
+   anywhere else. Aesthetic: precision trading-desk instrument. */
+
+:root {
+  /* ── ink & chrome ─────────────────────────────────────────────── */
+  --ink: #232c35; /* primary text; also text-on-gold */
+  --chrome: #232c35; /* dark chrome gradient start (sidebar/topbar/auth) */
+  --chrome-2: #2a343e; /* dark chrome gradient end */
+  --chrome-ink: #e8ebee; /* light text on chrome */
+  --chrome-muted: #8b97a3; /* secondary text on chrome */
+  --chrome-line: rgba(255, 255, 255, 0.08); /* hairlines on chrome */
+
+  /* ── light content area ───────────────────────────────────────── */
+  --bg: #f6f7f8; /* app content background */
+  --surface: #ffffff; /* cards / tables / panels */
+  --line: #e3e6e9; /* 1px borders */
+  --muted: #5a646e; /* secondary text, neutral deltas */
+
+  /* ── scan gold accent ─────────────────────────────────────────── */
+  --gold: #f0c14b; /* primary buttons, active nav, focus rings, Max Buy pill */
+  --gold-hover: #e7b73c;
+  --gold-pressed: #d9a92e;
+  --gold-wash: #fbf8ef; /* row hover — faint gold wash */
+  --gold-glow: rgba(240, 193, 75, 0.35); /* focus ring / shimmer tint */
+
+  /* ── data semantics (BUYER's perspective: price drop = green) ─── */
+  --green: #0a7d4f; /* price drop, rating/review increase = opportunity */
+  --green-soft: rgba(10, 125, 79, 0.1);
+  --red: #c0392b; /* price rise = worse buy */
+  --red-soft: rgba(192, 57, 43, 0.1);
+
+  /* ── typography ───────────────────────────────────────────────── */
+  --font-ui: 'Archivo Variable', 'Archivo', sans-serif;
+  --font-mono: 'Spline Sans Mono', 'Courier New', monospace;
+
+  /* ── spacing scale ────────────────────────────────────────────── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* ── radii & elevation ────────────────────────────────────────── */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --shadow: 0 1px 2px rgba(35, 44, 53, 0.06);
+  --shadow-drawer: -12px 0 32px rgba(35, 44, 53, 0.18);
+
+  /* ── density constants ────────────────────────────────────────── */
+  --table-font: 13px;
+  --row-height: 38px;
+  --cell-pad: 8px 12px;
+  --page-title: 22px;
+
+  /* ── motion ───────────────────────────────────────────────────── */
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-drawer: 240ms;
+  --dur-stagger: 240ms;
+}
