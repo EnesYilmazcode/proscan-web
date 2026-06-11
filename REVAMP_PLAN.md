@@ -1,5 +1,7 @@
 # REVAMP_PLAN.md — ProScan Web App Revamp
 
+> **STATUS (2026-06-10):** Sections 2–4 of this plan are **SUPERSEDED** by `docs/architecture/platform-architecture.md` (target architecture, auth handoff) and `docs/architecture/data-model.md` (Firestore data model) — the research fleet disproved key designs below (notably the raw ID-token handoff and the clients/competitors model). Section 6's open decisions have moved to `docs/decisions.md`. The original text is preserved as history; per-section banners mark what changed. The phase numbering in §5 remains the shared reference used by other docs.
+
 Forward plan to turn ProScan from "static landing page + local-only extension" into an authenticated web app where users sign in, save client/competitor data, and have the extension sync that data per-user. Opinionated and concrete. Read `CONTEXT.md` first for the current-state facts this plan builds on.
 
 ---
@@ -10,11 +12,15 @@ Forward plan to turn ProScan from "static landing page + local-only extension" i
 
 One-line justification: the Firebase project `proscanbot` and Hosting already exist, one SDK (`firebase/auth` + `firebase/firestore`) runs in **both** the SPA and the MV3 service worker, Firestore security rules give per-user authz with no backend to operate, and `onSnapshot` gives free realtime sync — "scan a product, see it in the dashboard instantly."
 
+> **Correction (2026-06-10):** "no backend to operate" is no longer strictly true. The final architecture requires upgrading the project to the **Blaze plan from Phase 4** for exactly one callable Cloud Function (the custom-token mint for the extension auth handoff — see the §2/§4 banners). Blaze retains the Spark free allowances; expected bill ~$0. Everything else stays serverless/Spark-shaped.
+
 Explicitly rejected: **Clerk + Firestore** (worst effort-to-benefit — Firestore rules expect Firebase Auth tokens, forcing custom-token minting or a full API). Clerk + Postgres + an API is the right call **only** if the product later goes B2B (team-shared lists, Clerk Organizations/RBAC) or needs relational analytics Firestore models poorly. Not now.
 
 ---
 
 ## 2. Target Architecture (text diagram)
+
+> **SUPERSEDED — see `docs/architecture/platform-architecture.md`.** The raw ID-token handoff diagrammed below cannot work: Firebase has no `signInWithIdToken` API, so a pushed ID token cannot initialize or refresh an SDK session in the extension. Replaced by a callable Cloud Function that mints a **custom token**, consumed by the extension via `signInWithCustomToken` (requires Blaze; expected bill ~$0).
 
 ```
 [Amazon tab]
@@ -51,6 +57,8 @@ Auth lives in **Firebase Auth**. Data lives in **Firestore**, keyed by user UID.
 ---
 
 ## 3. Per-User Data Model (Firestore)
+
+> **SUPERSEDED — see `docs/architecture/data-model.md`.** The clients/competitors model below was replaced by **workspaces / sources / products keyed by ASIN** plus compact date-keyed history docs (designed for run identity, month-over-month deltas, and a cheap render path).
 
 Everything nests under the signed-in user's UID so ownership is implied by the path and one security rule covers it all.
 
@@ -99,6 +107,8 @@ Harden later with per-field validation (`request.resource.data.name is string`, 
 
 ## 4. Extension ↔ Signed-In Website: Auth Sharing & Sync
 
+> **SUPERSEDED — see `docs/architecture/platform-architecture.md`.** Same auth correction as §2: the `SET_AUTH` raw-ID-token push below cannot sign the extension's Firebase SDK in (there is no `signInWithIdToken`). The dashboard instead invokes a callable Function to mint a custom token; the extension consumes it via `signInWithCustomToken` (`firebase/auth/web-extension`, SDK ≥10.8.0). The `externally_connectable` transport and MV3 discipline notes below remain valid.
+
 ### Auth handoff (recommended path)
 1. Add to the extension manifest:
    ```json
@@ -138,7 +148,7 @@ Landing page (`public/index.html`) served at `/`; Vite app built with `base:'/da
 
 **Phase 3 — Client/competitor CRUD.** Build dashboard UI to create clients, competitors, and view products, reading/writing the Firestore model from §3 via `onSnapshot`. This is usable even before the extension is wired.
 
-**Phase 4 — Extension linking.** Add `externally_connectable` + `onMessageExternal` to the extension; implement the dashboard→extension token push and the "linked/unlinked" UI state. Add Firebase SDK to the service worker with `indexedDBLocalPersistence`.
+**Phase 4 — Extension linking.** Add `externally_connectable` + `onMessageExternal` to the extension; implement the dashboard→extension token push and the "linked/unlinked" UI state. Add Firebase SDK to the service worker with `indexedDBLocalPersistence`. *(Correction 2026-06-10: the token push is now a custom-token mint via a callable Function + `signInWithCustomToken` — **Blaze is required from this phase**, expected bill ~$0; see §4 banner.)*
 
 **Phase 5 — Extension sync.** Refactor the extension's local scrape store into a queue; replace the old unauthenticated `localhost:8000` `POST` with direct authenticated Firestore writes under `users/{uid}/...`, alarm-driven and idempotent. Verify realtime appearance in the dashboard.
 
@@ -149,6 +159,8 @@ Each phase ships independently; the marketing site at `/` is never taken down.
 ---
 
 ## 6. Open Decisions (user must choose)
+
+> **MOVED — see `docs/decisions.md`.** The live decision log now lives there (including resolutions and newer decisions); the list below is the original snapshot.
 
 1. **Stack fork — confirm Firebase-native vs. Clerk.** Recommendation is Firebase Auth + Firestore. Choose Clerk + Postgres + API **only** if you expect near-term B2B/team-shared competitor lists (Clerk Organizations) or heavy relational analytics. Picking Clerk means committing to a backend API and abandoning the working Firebase setup. *Default: Firebase-native.*
 
