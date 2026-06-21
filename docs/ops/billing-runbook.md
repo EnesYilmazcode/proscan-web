@@ -1,5 +1,7 @@
 # Billing Runbook — alerts, the kill switch, and the hygiene rules that prevent the surprise bill
 
+> ⚠️ **SUPERSEDED (2026-06-13, no-card pivot):** This entire runbook is moot. The owner will never attach a credit card to Firebase — there is NO Blaze plan and NO Cloud Functions, so there are no budget alerts to set, no billing kill switch, and no `mintExtensionToken`/B3. The project stays on Spark; the extension authenticates to Firebase directly via extension-native `firebase/auth/web-extension`. Owner gates are B1+B2 only (B3 removed). Kept for history; ignore the procedures below.
+
 _Last updated: 2026-06-10 (verified against live pricing). Companion to decisions D1/D12 and owner task B3 in `TASKS.md`. The authoritative cost model is `architecture/data-model.md` §7; this page is what keeps reality at or below it._
 
 ## 1. Layered budget alerts (set the day Blaze goes on — B3)

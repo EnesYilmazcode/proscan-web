@@ -6,6 +6,8 @@ Pressure-test of REVAMP_PLAN.md against current (2025–2026) Firebase/Chrome fa
 
 ## 0. Corrections to REVAMP_PLAN — read this first
 
+> ⚠️ **SUPERSEDED (2026-06-13, no-card pivot):** Correction rows 1 and 3 below (and the §2 "enable Blaze at Phase 4" verdict they feed) introduced the custom-token-callable design — now dropped. There is NO Blaze plan and NO Cloud Functions. The original raw-ID-token push was still wrong, but the fix is **not** a minted custom token: the extension authenticates to Firebase **directly** via extension-native `firebase/auth/web-extension`, holding its own refresh token. Owner gates are B1+B2 only (B3 removed). Read every "custom-token mint / callable Function / Blaze" reference in this doc as obsolete.
+
 | # | REVAMP_PLAN says | Reality (2026) | Fix |
 |---|---|---|---|
 | 1 | Dashboard pushes a Firebase **ID token**; extension stores it and "refreshes via the Firebase SDK" (§4.4) | A raw ID token **cannot** initialize a Firebase Auth SDK session — there is no `signInWithIdToken`, and the SDK cannot refresh a token it didn't mint. ID tokens die after ~1 hour. | Push a **custom token** (minted by a tiny callable Cloud Function) and call `signInWithCustomToken` from `firebase/auth/web-extension` in the worker. The extension then owns its own refresh token and stays signed in autonomously. See §3. |
@@ -122,6 +124,8 @@ Official guide: https://firebase.google.com/docs/auth/web/chrome-extension. Key 
 
 ### Handoff options (replaces REVAMP_PLAN §4 step 2–4)
 
+> ⚠️ **SUPERSEDED (2026-06-13, no-card pivot):** The recommendation below (Option A — custom-token handoff via a callable Function) is dropped. There is NO Blaze plan and NO Cloud Functions, so Option A is no longer buildable. The chosen design is **direct extension-native sign-in**: the extension calls `signInWithEmailAndPassword` / Google sign-in from `firebase/auth/web-extension` itself, holding its own refresh token — no dashboard token mint, no Function. (This is closest to Option C in spirit but for all providers, not Google-only.) Owner gates drop to B1+B2 (B3 removed). Ignore the "Requires Blaze" Option-A recommendation below.
+
 | Option | How | Pros | Cons |
 |---|---|---|---|
 | **A. Custom-token handoff (recommended)** | Dashboard calls a callable Function → Admin SDK `createCustomToken(uid)` → `chrome.runtime.sendMessage(EXT_ID, {type:'SET_AUTH', token})` → worker: `signInWithCustomToken()` from `firebase/auth/web-extension` | Extension gets its **own refresh token**, persisted in IndexedDB → background alarm flushes work indefinitely without an open tab; all providers supported | Requires Blaze (one tiny Function); custom token must be used within ~1h of minting (fine — it's consumed immediately) |
@@ -182,6 +186,8 @@ Recommendation: skip the Trigger Email extension (it adds a queue collection + e
 ---
 
 ## 6. Decision summary
+
+> ⚠️ **SUPERSEDED (2026-06-13, no-card pivot):** Items 2 ("go Blaze at Phase 4") and 3 ("custom-token handoff (callable Function + `signInWithCustomToken`)") are dropped. There is NO Blaze plan and NO Cloud Functions. The extension authenticates to Firebase **directly** via extension-native `firebase/auth/web-extension`, holding its own refresh token — no token mint, no Function. Owner gates are B1+B2 only (B3 removed). The data-model item (1) is unaffected.
 
 1. **Data model:** hybrid `products/{asin}` (small) + `series/daily` (one compact, index-exempt history doc) + optional TTL'd `snapshots` + `runs`. Replaces REVAMP_PLAN §3's one-doc-per-scraped-product. Dashboard render = ~200 reads, any chart = +1 read.
 2. **Plan:** go Blaze at Phase 4, budget alert at $10/mo; expect ~$0 until hundreds of users, ~$20–40/mo at 1,000 users plus email provider.

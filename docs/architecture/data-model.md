@@ -279,7 +279,7 @@ No `increment()` counters (idempotency invariant); FBA/FBM mix is derived from o
 
 ## 5. Security rules (per-field validation)
 
-The extension authenticates as the same Firebase user (custom-token session), so one rule set covers both clients — no separate API surface. `plan` entitlement is enforced via **custom claims**; the doc field is a display mirror that clients cannot escalate.
+The extension authenticates as the same Firebase user (~~custom-token session~~ — **SUPERSEDED 2026-06-13, no-card pivot:** direct extension-native `firebase/auth/web-extension` sign-in, no custom token, no Cloud Function), so one rule set covers both clients — no separate API surface. `plan` entitlement is enforced via **custom claims**; the doc field is a display mirror that clients cannot escalate.
 
 ```js
 rules_version = '2';

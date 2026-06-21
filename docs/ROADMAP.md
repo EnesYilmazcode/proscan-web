@@ -32,6 +32,8 @@ Vite `src/ → dist/` pipeline; landing page byte-identical; deployed site unaff
 
 ## M3 — Sync engine (owner gates: D1 Blaze, B4 key rotation, B5 CWS submission; decisions D2, D4, D9–D11)
 **Goal: a scrape on Amazon appears in the dashboard, idempotently, within minutes.**
+
+> ⚠️ **SUPERSEDED (2026-06-13, no-card pivot):** The "D1 Blaze" gate and the `mintExtensionToken` callable / `signInWithCustomToken` auth-handoff bullet below are dropped. There is NO Blaze plan and NO Cloud Functions. The extension authenticates to Firebase directly via extension-native `firebase/auth/web-extension`; M3 owner gates collapse to B4 + B5 (D1/B3 removed, B1+B2 land at M2). Ignore the Blaze/Function references below.
 - Extension data prerequisites (the feature-catalog "cross-cutting prerequisites"): `scrapeRun` entity (runId `{sourceKey}_{startEpochMs}`, `me=`/`k=` source parsing, per-page persistence), numeric price parsing, ASIN dedup + sponsored flag + organic rank, spread-correctness fixes, `spreadResults` reset fix.
 - Gemini key rotation + BYO-key settings UI (D4 default) — shipped in this same release.
 - Sync writer: queue in `chrome.storage.local`, `firebase/firestore/lite` in the worker, one `writeBatch` per SERP page, absolute-value `set(merge:true)` writes, local `lastValues` map stamping `prev` + `delta` scalars, `chrome.alarms` flush.

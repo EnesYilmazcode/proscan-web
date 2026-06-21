@@ -86,6 +86,8 @@ Notes on this config:
 
 ## 3. Readiness table
 
+> ⚠️ **SUPERSEDED (2026-06-13, no-card pivot):** The "Blaze upgrade" row below and **note (c)** (and §4 bottom-line item 3) are dropped. There is NO Blaze plan and NO Cloud Functions, so the `mintExtensionToken` callable does not exist. The extension authenticates to Firebase **directly** via extension-native `firebase/auth/web-extension`, holding its own refresh token — no token mint, no Function, no billing account. The owner's one-time list collapses to the two console toggles (create Firestore + enable Email/Password & Google). Ignore every Blaze/Function reference in this section.
+
 Legend: **Exists** = verified working today. **Agent** = an autonomous coding agent can do it alone on this machine (CLI/code only, no browser). **Owner** = requires the owner in the Firebase console (or an interactive CLI session).
 
 | Item | Exists today | Agent can do alone | Owner must do |
@@ -121,6 +123,8 @@ Legend: **Exists** = verified working today. **Agent** = an autonomous coding ag
 ---
 
 ## 4. Bottom line
+
+> ⚠️ **SUPERSEDED (2026-06-13, no-card pivot):** Item 3 below (Blaze upgrade for `mintExtensionToken`) is dropped — no card, no Blaze, no Cloud Functions. The extension authenticates directly via extension-native `firebase/auth/web-extension`. The owner's real list is **two items (~5 min)**: create Firestore + enable Auth providers. Ignore item 3.
 
 Owner's one-time to-do list is **three items (~10 minutes)**:
 

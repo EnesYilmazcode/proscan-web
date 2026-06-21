@@ -8,6 +8,8 @@ Definitive system design for the ProScan platform: the Chrome extension (scraper
 
 ## 1. Components
 
+> ⚠️ **SUPERSEDED (2026-06-13, no-card pivot):** The "Cloud Functions" row below (and the `mintExtensionToken` callable / custom-token handoff it references, restated in §2 and §4) is dropped. There is NO Blaze plan and NO Cloud Functions, ever. The extension authenticates to Firebase directly via extension-native `firebase/auth/web-extension` (it holds its own refresh token; its uid == the user's account, so the `request.auth.uid == wid` rules still hold). Owner gates are B1+B2 only (B3 removed). Ignore the Functions mechanism everywhere it appears in this doc.
+
 | Component | Tech | Responsibility |
 |---|---|---|
 | Landing page `/` | Static HTML/CSS, Vite build (Phase 0 done) | Marketing. Never taken down during the build-out. |
@@ -83,6 +85,8 @@ Unchanged from REVAMP_PLAN §5 Phase 1, restated as the contract:
 ---
 
 ## 4. Extension ↔ site auth handoff
+
+> ⚠️ **SUPERSEDED (2026-06-13, no-card pivot):** The entire handoff sequence below — the `mintExtensionToken` callable, `createCustomToken(uid)`, the `LINK`/`signInWithCustomToken` dance — is VOID. There is NO Blaze plan and NO Cloud Functions. The extension signs in to Firebase **directly** via extension-native `firebase/auth/web-extension` (email/password + Google), holding its own refresh token. No token is minted by or pushed from the dashboard. The `externally_connectable` / `sender.origin` validation and the `authStateReady()` cold-start guard remain valid; the token-mint mechanism does not. Owner gates are B1+B2 only (B3 removed).
 
 This **replaces REVAMP_PLAN §4 steps 2–4 wholesale.** The plan's raw-ID-token push cannot work: there is no `signInWithIdToken`, the SDK cannot refresh a token it didn't mint, and ID tokens die after ~1 hour — background sync would silently stop (research correction #1, grounded against https://firebase.google.com/docs/auth/web/chrome-extension).
 
@@ -208,6 +212,8 @@ Two independent proposals (A: "minimal evolution", B: "ideal platform") were jud
 ---
 
 ## 8. v2 growth seams and Functions inventory
+
+> ⚠️ **SUPERSEDED (2026-06-13, no-card pivot):** There is NO Blaze plan and NO Cloud Functions, ever. The `mintExtensionToken` (MVP) row below is dropped entirely — the extension authenticates to Firebase directly via extension-native `firebase/auth/web-extension`. The v2 `weeklyDigest` / `downsampleHistory` Functions are likewise unavailable under the no-card constraint and would need a non-Function approach (or to be cut) if revisited. Owner gates are B1+B2 only (B3 removed).
 
 | Function | Phase | Trigger | Job |
 |---|---|---|---|

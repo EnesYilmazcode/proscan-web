@@ -108,6 +108,8 @@ Harden later with per-field validation (`request.resource.data.name is string`, 
 ## 4. Extension ↔ Signed-In Website: Auth Sharing & Sync
 
 > **SUPERSEDED — see `docs/architecture/platform-architecture.md`.** Same auth correction as §2: the `SET_AUTH` raw-ID-token push below cannot sign the extension's Firebase SDK in (there is no `signInWithIdToken`). The dashboard instead invokes a callable Function to mint a custom token; the extension consumes it via `signInWithCustomToken` (`firebase/auth/web-extension`, SDK ≥10.8.0). The `externally_connectable` transport and MV3 discipline notes below remain valid.
+>
+> ⚠️ **FURTHER SUPERSEDED (2026-06-13, no-card pivot):** Even the custom-token correction above is now VOID. The owner will never attach a credit card to Firebase — there is NO Blaze plan and NO Cloud Functions, so there is **no `mintExtensionToken` callable and no custom-token mint at all**. The extension authenticates to Firebase **directly** via extension-native `firebase/auth/web-extension` (email/password + Google), holding its own refresh token; its uid == the user's account, so the `request.auth.uid == uid` rules still hold. Owner gates drop to B1 (create Firestore) + B2 (enable Email/Password + Google); B3 (Blaze) is removed. Only the `externally_connectable` transport and MV3 discipline notes below remain valid.
 
 ### Auth handoff (recommended path)
 1. Add to the extension manifest:

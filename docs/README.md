@@ -17,7 +17,7 @@ _Produced 2026-06-09/10 by a 20-agent planning fleet (recon, web research, perso
 
 | Doc | Contents |
 |---|---|
-| [`architecture/platform-architecture.md`](architecture/platform-architecture.md) | Full system design: auth handoff (custom-token callable), sync queue, hosting layout, extension build pipeline, emulator/staging strategy, CWS release engineering, backups |
+| [`architecture/platform-architecture.md`](architecture/platform-architecture.md) | Full system design: auth handoff (~~custom-token callable~~ — **SUPERSEDED 2026-06-13**: direct extension-native `firebase/auth/web-extension`, no Function), sync queue, hosting layout, extension build pipeline, emulator/staging strategy, CWS release engineering, backups |
 | [`architecture/data-model.md`](architecture/data-model.md) | Definitive Firestore schema: `workspaces/{wid}` tree, ASIN-keyed products + date-keyed history docs, security rules, indexes, **authoritative cost model** (§7), retention/TTL, quota enforcement |
 | [`ops/billing-runbook.md`](ops/billing-runbook.md) | Layered budget alerts ($5/$10 actual + $25 forecast), the billing kill switch, and the `onSnapshot`/deploy/bundle hygiene rules that keep the bill at ~$0 |
 
@@ -40,7 +40,7 @@ _Produced 2026-06-09/10 by a 20-agent planning fleet (recon, web research, perso
 ## The five load-bearing conclusions
 
 1. **The market gap is real and time-limited:** only three tools track competitor storefronts over time, none under ~$60/mo, all delivering analysis as Excel downloads — and ProScan's client-side scraping makes a generous free tier structurally affordable. Seller Assistant is the threat to outrun.
-2. **The original auth plan was unbuildable:** a pushed raw ID token can't initialize or refresh an extension SDK session. The fix (one `mintExtensionToken` callable + `signInWithCustomToken`) works — and means **Blaze** (still ~$0/mo expected).
+2. **The original auth plan was unbuildable:** a pushed raw ID token can't initialize or refresh an extension SDK session. ~~The fix (one `mintExtensionToken` callable + `signInWithCustomToken`) works — and means **Blaze** (still ~$0/mo expected).~~ **SUPERSEDED (2026-06-13, no-card pivot):** the custom-token-callable fix is dropped — there is NO Blaze and NO Cloud Functions. The extension authenticates to Firebase **directly** via extension-native `firebase/auth/web-extension`, holding its own refresh token. Owner gates are B1+B2 only.
 3. **The original data model was unaffordable at dashboard scale:** one-doc-per-scrape made a 90-day × 200-product render ~18,000 reads. The final model (ASIN-keyed docs + compact history maps + extension-stamped deltas) does it in ~400, and Movers in ~100.
 4. **The extension needs surgery before the first cloud write:** no run identity, string prices, no dedup, spread-math bugs — plus a live incident: a **shared hardcoded Gemini API key** ships to all users (the claimed BYO-key UI doesn't exist). Owner action B4 + decision D4.
 5. **MVP is six features, not twenty:** auth/sync, run inbox, delta board + history drawer, spread + Max Buy Price, storefront watchlist, XLSX export. After two scrapes of one storefront, that already beats the workbook competitors charge $60–80/mo to replace.

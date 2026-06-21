@@ -24,6 +24,8 @@ _Last updated: 2026-06-10. Every decision only the owner can make, in one place 
 ## Details
 
 ### D1 — Blaze billing consent ⏳ (blocks extension sync at M3)
+> ⚠️ **SUPERSEDED (2026-06-13, no-card pivot):** D1 is DECIDED — **NO.** The owner will never attach a credit card to Firebase: no Blaze, no Cloud Functions, no `mintExtensionToken`. The "if declined" fallback below (raw ID token dying after ~1h) is also obsolete — the extension authenticates to Firebase **directly** via extension-native `firebase/auth/web-extension`, holding its own refresh token, so background sync works for weeks without the dashboard open. D1 no longer gates anything; owner gates collapse to B1+B2 (B3 removed). Ignore the mechanism and cost discussion below.
+
 The final architecture needs exactly one Cloud Function: `mintExtensionToken`, the callable that turns the dashboard's session into a custom token the extension can sign in with (`signInWithCustomToken`). Cloud Functions require the Blaze plan, which requires a billing account (credit card).
 - **Cost reality:** Blaze includes the same free allowances as Spark; expected bill ~$0 until hundreds of active users (~$5–8/mo at 100 users, ~$25–70/mo at 1,000 — authoritative model in `docs/architecture/data-model.md` §7). A $10/mo budget alert gets set the same day.
 - **If declined:** the extension falls back to a pushed raw ID token that dies after ~1 hour — background sync stops whenever the dashboard isn't being reopened. Everything else (auth, dashboard, manual flows) still works on Spark.

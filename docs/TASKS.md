@@ -25,6 +25,7 @@ The Firebase CLI on this machine is already logged in as the owner, so even depl
 - [ ] First-sign-in `workspaces/{wid}` bootstrap; empty states; landing→dashboard links
 
 ### M3 (after D1/B3 Blaze; ends in B5 store submission)
+> ⚠️ **SUPERSEDED (2026-06-13, no-card pivot):** This section no longer depends on "D1/B3 Blaze" (both removed). The `mintExtensionToken` callable + `signInWithCustomToken` handoff task below is dropped — the extension authenticates to Firebase directly via extension-native `firebase/auth/web-extension`. There is NO Blaze plan and NO Cloud Functions, so the "enable Firestore PITR / weekly export once Blaze is on" task is also moot. Ignore the Blaze/Function references in this section.
 - [ ] Extension prerequisites: `scrapeRun` entity, numeric price, ASIN dedup + sponsored flag + organic rank, spread-correctness fixes, `spreadResults` reset
 - [ ] BYO-key Gemini settings UI (D4 default) — pairs with owner key rotation B4
 - [ ] Sync writer: queue → `firebase/firestore/lite`, per-page `writeBatch`, `prev`/`delta` stamping from local `lastValues`, `chrome.alarms` flush
@@ -47,7 +48,7 @@ The Firebase CLI on this machine is already logged in as the owner, so even depl
 |---|---|---|---|---|
 | **B1** | **Create Firestore database** (only if my CLI attempt 403s) | M2 gate | ~2 min | [console.firebase.google.com](https://console.firebase.google.com) → `proscanbot` → Build → Firestore Database → Create database → **decide D12 before clicking create** (database location — single-region **`us-central1`** default; the location is **irreversible**) → pick the location accordingly, **not `nam5`** unless deliberately chosen → production mode (I deploy the real rules) |
 | **B2** | **Enable Auth providers** | M2 gate | ~3 min | Console → Authentication → Get started → Sign-in method → enable **Email/Password** and **Google** (pick your support email) |
-| **B3** | **Upgrade to Blaze + budget alerts** (decision D1) | M3 gate | ~5 min | Console → bottom-left Spark "Upgrade" → attach billing account (card) → then Billing → Budgets & alerts → set **three** thresholds: **$5 actual, $10 actual, $25 forecast** per [`ops/billing-runbook.md`](ops/billing-runbook.md). Expected bill ~$0 at current scale |
+| **B3** | ~~**Upgrade to Blaze + budget alerts** (decision D1)~~ **REMOVED (2026-06-13, no-card pivot)** — owner will NEVER attach a credit card to Firebase. No Blaze, no Cloud Functions, no `mintExtensionToken`. The extension authenticates directly via extension-native `firebase/auth/web-extension`. This owner task no longer exists; M3 needs no billing gate. | ~~M3 gate~~ | — | — |
 | **B4** | **Gemini key check + rotation** | Check **now**; rotation timing depends on the billing check | ~5 min | [aistudio.google.com](https://aistudio.google.com) → API keys → **FIRST check whether the embedded key's Google Cloud project has billing enabled.** If billing-enabled: the leaked key is an unbounded liability — rotate **immediately** (accept the chatbot outage for all ~233 users) or move the key to a no-billing project as a stopgap. If no-billing: exposure is quota exhaustion only, and the M3 timing stands — rotate the moment the M3 extension version is live (or sooner if usage looks abused — your call, decision D4) |
 | **B5** | **CWS submission approvals** (×2: M3 batch a, M5 batch b) | M3, M5 | ~10 min each | I hand you a built zip + listing copy + exact data-disclosure answers; you upload in the [CWS developer dashboard](https://chrome.google.com/webstore/devconsole), set staged rollout, submit |
 | **B6** | **Share CWS dashboard stats** (weekly actives, install trend) | Anytime, informs D3 | ~2 min | Developer dashboard → ProScan → Stats screenshot. Public listing already verified: 233 users, 4.9★/8 ratings, v2.0 |
@@ -55,7 +56,9 @@ The Firebase CLI on this machine is already logged in as the owner, so even depl
 | **B8** | **Firestore TTL toggle** (or approve a gcloud install and I script it) | M6 | ~2 min | Console → Firestore → TTL → policy on `expireAt` for the two cold collections (exact names in `data-model.md` §8) |
 | **B9** | *(Optional)* **Custom domain** (decision D2) | Before M3 if ever | varies | Buy domain → console Hosting custom-domain flow → tell me; I update manifest + configs (costs one extra CWS review) |
 
-**Bottleneck note:** B1+B2 are the only things between "now" and a working sign-in. B3 is the only thing between sign-in and extension sync. Everything else can proceed around you.
+**Bottleneck note:** B1+B2 are the only things between "now" and a working sign-in. Everything else can proceed around you.
+
+> ⚠️ **SUPERSEDED (2026-06-13, no-card pivot):** This note previously said "B3 is the only thing between sign-in and extension sync." B3 (Blaze) is REMOVED — extension sync needs no billing gate because the extension authenticates directly via extension-native `firebase/auth/web-extension`. B1+B2 unblock both sign-in and sync.
 
 ---
 
@@ -68,7 +71,7 @@ All twelve live in **`decisions.md`** with defaults — D1 (Blaze), D2 (domain),
 ## Suggested immediate sequence
 
 1. **Me, today, no input needed:** the whole M1 list above.
-2. **You, ~5 min when convenient:** B1 + B2 (Firestore + Auth providers) → unlocks M2 auth.
-3. **You, ~7 min:** B3 (Blaze) + B4 usage check → unlocks M3 sync.
+2. **You, ~5 min when convenient:** B1 + B2 (Firestore + Auth providers) → unlocks M2 auth **and** M3 sync (the extension authenticates directly via extension-native `firebase/auth/web-extension`).
+3. **You, ~5 min:** B4 usage check (key rotation).  *(B3 Blaze REMOVED 2026-06-13 — no card, no Blaze, no Functions.)*
 4. **Me:** M2 → M3 + M4 in parallel → hand you the B5 zip.
 5. MVP live; M5 begins.
