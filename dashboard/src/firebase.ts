@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { connectAuthEmulator, getAuth } from 'firebase/auth';
+import { connectAuthEmulator, getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
 import { connectFunctionsEmulator, getFunctions } from 'firebase/functions';
 
@@ -25,6 +25,13 @@ const prodConfig = {
 
 export const app = initializeApp(import.meta.env.DEV ? devConfig : prodConfig);
 export const auth = getAuth(app);
+
+// Single shared Google provider. `select_account` forces the chooser every
+// time, so a shared machine never silently reuses the last Google session.
+// The dashboard is the canonical Google entry point; the extension later
+// adopts this same Firebase identity (no separate OAuth client).
+export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
 export const db = getFirestore(app);
 export const functions = getFunctions(app);
 

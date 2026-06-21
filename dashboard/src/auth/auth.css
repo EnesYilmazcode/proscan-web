@@ -1,29 +1,50 @@
-/* Auth screens — dark chrome instrument panel. Tokens only. */
+/* Auth screens — "the instrument boots up".
+   A quiet sign-in control column beside the ambient scan-board instrument.
+   ProScan tokens only, with ONE deliberate exception: the Google button keeps
+   Google's mandated brand hex (quarantined + commented) per branding rules. */
 
+/* ── shell: two-column on desktop, single column below 920px ───────── */
 .auth {
   min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(360px, 42%) 1fr;
+  color: var(--chrome-ink);
+}
+
+/* Centered single-column variant for the "opens soon" grace screen. */
+.auth-solo {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  color: var(--chrome-ink);
+}
+
+.auth__col {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-6);
+  padding: var(--space-7);
 }
 
 .auth__panel {
   width: 100%;
-  max-width: 384px;
+  max-width: 360px;
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
 }
 
+/* ── brand lockup ─────────────────────────────────────────────────── */
 .auth__brand {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  margin-bottom: var(--space-4);
   color: var(--gold);
 }
-
+.auth__brand--compact {
+  gap: var(--space-2);
+}
 .auth__wordmark {
   font-family: var(--font-ui);
   font-size: 24px;
@@ -32,34 +53,130 @@
   color: var(--chrome-ink);
 }
 
+/* Desktop leads with the tagline (the instrument column carries personality);
+   the "Welcome back" headline only appears when the column stands alone. */
+/* Brand + tagline grouped so they sit tight (8px) while the panel's own
+   16px gap separates the group from the auth controls — no negative-margin hack. */
+.auth__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
 .auth__tagline {
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 1.5;
   color: var(--chrome-muted);
-  margin: calc(-1 * var(--space-3)) 0 var(--space-2);
 }
 
+/* ── Google button (DARK theme) ───────────────────────────────────────
+   The hex below are GOOGLE'S MANDATED brand colors (Sign-In branding
+   guidelines, dark theme) — intentionally NOT ProScan tokens. Do not unify
+   #131314 / #E3E3E3 / #8E918F with --chrome-*; Google requires them. */
+.google-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px; /* Google spec: 10px between logo and label */
+  width: 100%;
+  height: 44px; /* touch parity with the gold submit; >= Google's 40px */
+  padding: 0 12px; /* Google spec: 12px before/after */
+  border-radius: var(--radius-sm);
+  border: 1px solid #8e918f;
+  background: #131314;
+  color: #e3e3e3;
+  font-family: 'Roboto', var(--font-ui); /* Google spec: Roboto Medium */
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  cursor: pointer;
+  transition: box-shadow 120ms ease, opacity 120ms ease;
+}
+.google-btn__g {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+.google-btn:hover:not(:disabled) {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+.google-btn:focus-visible {
+  outline: none;
+  /* ProScan scan-gold ring OUTSIDE the button — never recolors the button. */
+  box-shadow: 0 0 0 2px var(--gold-glow);
+}
+.google-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.google-btn[aria-busy='true'] {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* ── "or" divider ─────────────────────────────────────────────────── */
+.auth__divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 12px;
+  color: var(--chrome-muted);
+}
+.auth__divider::before,
+.auth__divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--chrome-line);
+}
+
+/* ── form ─────────────────────────────────────────────────────────── */
+.auth__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
 .auth__field {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
 }
-
+.auth__label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+/* Sentence-case labels — the shipped all-caps rule was a named slop tell. */
 .auth__label {
-  font-size: 11px;
-  font-weight: 650;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--chrome-muted);
+}
+.auth__forgot {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  color: var(--chrome-muted);
+  cursor: pointer;
+}
+.auth__forgot:hover {
+  color: var(--gold);
 }
 
 .auth__input {
-  height: 38px;
+  width: 100%;
+  height: 44px;
   padding: 0 var(--space-3);
   border-radius: var(--radius-sm);
   border: 1px solid var(--chrome-line);
-  background: rgba(255, 255, 255, 0.05);
+  /* solid recessed fill (raised from the old near-invisible 0.05) + a 1px
+     inner top highlight so fields feel physical, like instrument inputs */
+  background: rgba(255, 255, 255, 0.09);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   color: var(--chrome-ink);
   font-size: 14px;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 .auth__input::placeholder {
   color: var(--chrome-muted);
@@ -68,26 +185,63 @@
 .auth__input:focus {
   outline: none;
   border-color: var(--gold);
-  box-shadow: 0 0 0 2px var(--gold-glow);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 0 0 2px var(--gold-glow);
 }
 
-.auth__cta {
-  height: 40px;
-  font-size: 14px;
-  width: 100%;
+.auth__password {
+  position: relative;
+}
+.auth__password .auth__input {
+  padding-right: 42px;
+}
+.auth__reveal {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 44px;
+  width: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--chrome-muted);
+  cursor: pointer;
+}
+.auth__reveal:hover {
+  color: var(--chrome-ink);
 }
 
-.auth__error {
+/* ── feedback regions ─────────────────────────────────────────────── */
+.auth__error,
+.auth__note {
   font-size: 13px;
   line-height: 1.4;
-  color: var(--gold);
-  border: 1px solid var(--chrome-line);
-  border-left: 2px solid var(--red);
   border-radius: var(--radius-sm);
   padding: var(--space-2) var(--space-3);
+}
+.auth__error {
+  color: var(--chrome-ink);
+  border: 1px solid var(--chrome-line);
+  border-left: 2px solid var(--red); /* semantic accent, not decoration */
+  background: rgba(255, 255, 255, 0.04);
+}
+.auth__note {
+  color: var(--chrome-muted);
+  border: 1px solid var(--chrome-line);
+  border-left: 2px solid var(--gold);
   background: rgba(255, 255, 255, 0.04);
 }
 
+/* ── the one gold action ──────────────────────────────────────────── */
+.auth__cta {
+  height: 44px;
+  width: 100%;
+  margin-top: var(--space-2); /* separate the action from the field group */
+  font-size: 14px;
+}
+
+/* ── toggle / legal / dev hint ────────────────────────────────────── */
 .auth__toggle {
   background: none;
   border: none;
@@ -105,8 +259,25 @@
   color: var(--gold-hover);
 }
 
+.auth__legal {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--chrome-muted);
+  text-align: center;
+}
+.auth__legal a {
+  color: var(--chrome-muted);
+  text-decoration: none;
+  border-bottom: 1px solid var(--chrome-line);
+}
+.auth__legal a:hover {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
 .auth__hint {
   align-self: center;
+  margin-top: var(--space-2);
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
@@ -124,6 +295,17 @@
   border-color: var(--gold);
 }
 
+/* "Opens soon" grace + splash bits (kept) */
+.auth__soon-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--chrome-ink);
+}
+.auth__soon-body {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--chrome-muted);
+}
 .auth__links {
   display: flex;
   justify-content: center;
@@ -141,18 +323,8 @@
   border-bottom-color: var(--gold);
 }
 
-.auth__soon-title {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--chrome-ink);
-}
-.auth__soon-body {
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--chrome-muted);
-}
-
-/* Minimal splash while auth state / bootstrap resolves. */
+/* Minimal splash while auth state / first-sign-in bootstrap resolves
+   (rendered by AuthGate). */
 .auth-splash {
   min-height: 100vh;
   display: flex;
@@ -160,6 +332,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-4);
+  color: var(--chrome-ink);
 }
 .auth-splash__mark {
   color: var(--gold);
@@ -172,5 +345,202 @@
   }
   50% {
     opacity: 1;
+  }
+}
+
+/* ── the instrument: scan board (signature) ───────────────────────── */
+.auth__showcase {
+  position: relative;
+  overflow: hidden;
+  border-left: 1px solid var(--chrome-line); /* the bezel seam */
+}
+/* vignette so the readout centers and the seam edge stays legible */
+.auth__showcase::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    130% 100% at 65% 50%,
+    transparent 38%,
+    rgba(35, 44, 53, 0.6) 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+.scanboard {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+/* faint concentric radar rings — the "scope" the sweep reads against */
+.scanboard::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 560px;
+  aspect-ratio: 1 / 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: repeating-radial-gradient(
+    circle,
+    transparent 0 46px,
+    var(--chrome-line) 46px 47px
+  );
+  opacity: 0.7;
+  z-index: 0;
+  pointer-events: none;
+}
+/* a soft gold sweep — light passing over the scope, not a solid wedge.
+   Bright leading edge fades back; the radial mask dims it toward the rim so
+   there is no hard outer circle edge. */
+.scanboard__sweep {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 560px;
+  aspect-ratio: 1 / 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0deg, var(--gold-glow) 42deg);
+  opacity: 0.5;
+  -webkit-mask: radial-gradient(circle, #000 22%, transparent 82%);
+  mask: radial-gradient(circle, #000 22%, transparent 82%);
+  animation: radar-sweep 6s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+.scanboard__inner {
+  position: relative;
+  z-index: 2;
+  width: min(360px, 78%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.scanboard__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.scanboard__status {
+  color: var(--chrome-muted);
+}
+.scanboard__count {
+  font-size: 12px;
+  color: var(--chrome-muted);
+}
+.scanboard__rows {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--chrome-line);
+}
+.scanboard__row {
+  display: grid;
+  grid-template-columns: 1fr 72px 56px;
+  gap: var(--space-3);
+  align-items: baseline;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--chrome-line);
+  opacity: 0.62;
+  animation: row-scan 6s linear infinite;
+  animation-delay: calc(var(--row) * 0.42s);
+}
+.scanboard__name {
+  font-size: 12px;
+  color: var(--chrome-muted);
+  letter-spacing: 0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scanboard__price {
+  font-size: 13px;
+  color: var(--chrome-ink);
+  text-align: right; /* decimal-aligned rail — it's an instrument */
+}
+.scanboard__delta {
+  justify-self: end;
+  text-align: right;
+}
+/* buyer-semantic deltas tuned up for legibility on the dark instrument */
+.scanboard .delta--good {
+  color: #46d39e;
+}
+.scanboard .delta--bad {
+  color: #f0796f;
+}
+.scanboard .delta--flat {
+  color: var(--chrome-muted);
+}
+.scanboard__verdict {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+.scanboard__verdict-text {
+  font-size: 12px;
+  color: var(--chrome-muted);
+}
+
+@keyframes row-scan {
+  0%,
+  100% {
+    opacity: 0.62;
+  }
+  6% {
+    opacity: 1;
+  }
+  22% {
+    opacity: 0.62;
+  }
+}
+
+/* ── responsive ───────────────────────────────────────────────────── */
+@media (max-width: 919px) {
+  .auth {
+    grid-template-columns: 1fr;
+    place-items: center;
+  }
+  .auth__showcase {
+    display: none;
+  }
+  .auth__panel {
+    max-width: 420px;
+  }
+}
+@media (max-width: 600px) {
+  .auth__col {
+    padding: var(--space-5);
+  }
+  /* >=16px prevents iOS tap-zoom */
+  .auth__input {
+    font-size: 16px;
+  }
+}
+
+/* ── reduced motion ───────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  /* resolve the sweep to a composed resting quadrant (not a paused frame) */
+  .scanboard__sweep {
+    animation: none;
+    transform: rotate(40deg);
+  }
+  /* the AuthGate splash pulse was previously unguarded — gate it here */
+  .auth-splash__mark {
+    animation: none;
+  }
+  .scanboard__row {
+    animation: none;
+    opacity: 0.8;
+  }
+  .scanboard .status-dot--active::before {
+    animation: none;
   }
 }
