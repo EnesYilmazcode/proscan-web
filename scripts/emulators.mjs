@@ -2,12 +2,13 @@
 // checkouts (or a stuck Java process on 8080) don't collide.
 //
 //   node scripts/emulators.mjs start [extra firebase args]
-//   node scripts/emulators.mjs exec "<command>"
+//   node scripts/emulators.mjs exec [--only auth,firestore] "<command>"
 //
 // Ports: EMU_AUTH_PORT, EMU_FIRESTORE_PORT, EMU_HOSTING_PORT, EMU_UI_PORT,
 // EMU_HUB_PORT, EMU_LOGGING_PORT. Unset ones keep the firebase.json value.
 // `exec` also hands the ports to the child as FIREBASE_AUTH_EMULATOR_HOST /
-// FIRESTORE_EMULATOR_HOST (set by firebase itself) and VITE_*_EMULATOR_PORT.
+// FIRESTORE_EMULATOR_HOST (set by firebase itself), VITE_*_EMULATOR_PORT and
+// EMU_HOSTING_PORT.
 
 import { execSync, spawn } from 'node:child_process';
 import { readFileSync, writeFileSync, rmSync } from 'node:fs';
@@ -55,10 +56,11 @@ const [mode, ...rest] = process.argv.slice(2);
 let args;
 if (mode === 'start') {
   args = ['emulators:start', ...rest];
-} else if (mode === 'exec' && rest.length === 1) {
-  args = ['emulators:exec', '--only', 'auth,firestore', JSON.stringify(rest[0])];
+} else if (mode === 'exec' && (rest.length === 1 || (rest.length === 3 && rest[0] === '--only'))) {
+  const only = rest.length === 3 ? rest[1] : 'auth,firestore';
+  args = ['emulators:exec', '--only', only, JSON.stringify(rest[rest.length - 1])];
 } else {
-  console.error('usage: emulators.mjs start [args] | exec "<command>"');
+  console.error('usage: emulators.mjs start [args] | exec [--only list] "<command>"');
   process.exit(2);
 }
 args.push('--project', 'demo-proscan', '--config', '.firebase.emulators.json');
@@ -72,6 +74,7 @@ const child = spawn('firebase', args, {
     ...process.env,
     VITE_AUTH_EMULATOR_PORT: String(ports.auth),
     VITE_FIRESTORE_EMULATOR_PORT: String(ports.firestore),
+    EMU_HOSTING_PORT: String(ports.hosting),
   },
 });
 
@@ -85,7 +88,9 @@ function freePorts() {
   } catch {
     return;
   }
-  const wanted = new Set([ports.firestore, ports.auth, ports.hub, ports.logging].map(String));
+  const wanted = new Set(
+    [ports.firestore, ports.auth, ports.hosting, ports.hub, ports.logging].map(String),
+  );
   const pids = new Set();
   for (const line of out.split('\n')) {
     const m = line.trim().match(/^TCP\s+127\.0\.0\.1:(\d+)\s+\S+\s+LISTENING\s+(\d+)/);
