@@ -69,11 +69,6 @@ export function relativeTime(at: TimeLike): string {
   return future ? `in ${label}` : `${label} ago`;
 }
 
-/** UTC 'YYYY-MM-DD' for a date (default: now). */
-export function dayKey(date: Date = new Date()): string {
-  return date.toISOString().slice(0, 10);
-}
-
 /** Local 'YYYY-MM-DD', the way the extension writes run and history dayKeys. */
 export function localDayKey(date: Date = new Date()): string {
   return dayKeyOf(date.getTime(), date.getTimezoneOffset());

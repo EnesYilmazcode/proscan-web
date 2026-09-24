@@ -1,7 +1,8 @@
 // Date-bucketing for the Run Inbox: Today / This week / Earlier.
 // Buckets key off the run's dayKey, the local date where it ran (falling
-// back to startedAt), so the grouping matches the date on each card. Input arrives newest-
-// first from runsNewestFirst(); bucketing preserves that order.
+// back to startedAt), so the grouping matches the date on each card.
+// Input arrives newest-first from runsNewestFirst(); bucketing keeps that
+// order.
 
 import type { Run } from '../../lib/types';
 import { dayKeyDiff, localDayKey, toMillis } from '../../lib/format';
