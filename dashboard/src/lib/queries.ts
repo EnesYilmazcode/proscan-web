@@ -3,7 +3,7 @@
 // auditable in one file (docs/ops/billing-runbook.md):
 //   * products are ALWAYS scoped (per-source / top-N / recent-N) — never
 //     the whole collection;
-//   * runs list is capped at 30;
+//   * runs are paged 30 at a time;
 //   * sources is the only whole-collection read (tiny by design);
 //   * history + offerSnapshots are one-shot fetch material.
 
@@ -94,12 +94,21 @@ export function productRef(wid: string, asin: string): DocumentReference<Product
 
 /* ── runs / sources ─────────────────────────────────────────────────── */
 
-/** Run Inbox — newest first, HARD-capped at 30 (read hygiene). */
-export function runsRecent(wid: string, lim = 30): Query<Run> {
+/** Run Inbox — newest first, no limit: page it with usePagedQuery. */
+export function runsNewestFirst(wid: string): Query<Run> {
   return query(
     collection(db, 'workspaces', wid, 'runs').withConverter(runConverter),
     orderBy('startedAt', 'desc'),
-    limit(Math.min(lim, 30)),
+  );
+}
+
+/** A source's newest runs. Index: runs(sourceId asc, startedAt desc). */
+export function runsOfSource(wid: string, sourceId: string, lim: number): Query<Run> {
+  return query(
+    collection(db, 'workspaces', wid, 'runs').withConverter(runConverter),
+    where('sourceId', '==', sourceId),
+    orderBy('startedAt', 'desc'),
+    limit(lim),
   );
 }
 
