@@ -10,6 +10,7 @@
 import {
   collection,
   doc,
+  documentId,
   getDocs,
   limit,
   orderBy,
@@ -25,6 +26,7 @@ import {
 import { db } from '../firebase';
 import {
   historyConverter,
+  pageConverter,
   productConverter,
   runConverter,
   sourceConverter,
@@ -33,6 +35,7 @@ import type {
   HistoryDoc,
   LeadStage,
   OfferSnapshot,
+  PageDoc,
   Product,
   ProductEvent,
   ProductLead,
@@ -74,13 +77,6 @@ export function productsBySource(
   return lim === null ? q : query(q, limit(lim));
 }
 
-/** Global Movers / Flip Radar: biggest price DROPS first (delta.pPct asc —
- *  most-negative = best buying opportunity). Single-field index. */
-export function topMovers(wid: string, lim: number | null = 100): Query<Product> {
-  const q = query(productsCol(wid), orderBy('delta.pPct', 'asc'));
-  return lim === null ? q : query(q, limit(lim));
-}
-
 /** Most recently observed products across all sources. */
 export function recentProducts(wid: string, lim: number | null = 200): Query<Product> {
   const q = query(productsCol(wid), orderBy('latest.at', 'desc'));
@@ -110,6 +106,16 @@ export function runsOfSource(wid: string, sourceId: string, lim: number): Query<
     orderBy('startedAt', 'desc'),
     limit(lim),
   );
+}
+
+/** A run's page chunks, one-shot material for run comparisons. */
+export function runPages(wid: string, runId: string): Query<PageDoc> {
+  return collection(db, 'workspaces', wid, 'runs', runId, 'pages').withConverter(pageConverter);
+}
+
+/** Up to 30 products by ASIN (the `in` limit). */
+export function productsByAsin(wid: string, asins: string[]): Query<Product> {
+  return query(productsCol(wid), where(documentId(), 'in', asins.slice(0, 30)));
 }
 
 /** Whole sources collection (the watchlist spine — tiny by design;

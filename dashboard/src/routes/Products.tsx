@@ -7,9 +7,11 @@
 //             page is live, "Load more" pages on with a cursor (F-45)
 //   total  -> getCountFromServer on the same query, so the header always
 //             says how many there are, not how many are loaded
-//   movers -> topMovers(wid, 100)
-// plus the sanctioned tiny sources listener for the scope dropdown. An
-// exact ASIN in the search box is looked up directly, loaded or not.
+//   movers -> each source's latest two runs and their page chunks
+//             (lib/movers.ts): price changes run against run, per source
+// plus the sanctioned tiny sources listener for the scope dropdown. With a
+// source in scope, Latest also shows deltas against that source's previous
+// run. An exact ASIN in the search box is looked up directly.
 
 import { useMemo, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -27,8 +29,9 @@ import {
   productsBySource,
   recentProducts,
   sources as sourcesQuery,
-  topMovers,
 } from '../lib/queries';
+import { asSeenBy } from '../lib/compare';
+import { MOVERS_SHOWN, moverSources, useMoverRows, useSourceComparisons } from '../lib/movers';
 import { ASIN_RE } from '../../../packages/schema/index.js';
 import type { Product } from '../lib/types';
 import PageHeader from '../components/PageHeader';
@@ -47,8 +50,6 @@ import BoardTable from '../features/board/BoardTable';
 import { boardColumns, dataColumnVisibility } from '../features/board/columns';
 import { sortRows } from '../features/board/sortRows';
 import '../features/board/board.css';
-
-const MOVERS_LIMIT = 100;
 
 const fmt = (n: number) => n.toLocaleString('en-US');
 
@@ -94,29 +95,46 @@ export default function Products() {
   );
   const total = useServerCount(() => (view === 'latest' ? scopeQuery() : null), [wid, view, sourceId]);
 
-  const movers = useSnapshotQuery<Product>(
-    () => (wid && view === 'movers' ? topMovers(wid, MOVERS_LIMIT) : null),
-    [wid, view],
-    'board:movers',
-  );
-
   const sourcesState = useSnapshotQuery(
     () => (wid ? sourcesQuery(wid) : null),
     [wid],
     'board:sources',
   );
 
-  const loaded = view === 'movers' ? movers.data : latest.data;
-  const state = view === 'movers' ? movers : latest;
+  // Which sources to compare run against run: the one in scope, or for
+  // Movers across all sources the most recently scanned ones.
+  const compareIds = useMemo(() => {
+    if (view === 'movers') {
+      if (!sourceId && sourcesState.loading) return null;
+      return moverSources(sourceId, sourcesState.data);
+    }
+    return sourceId ? [sourceId] : null;
+  }, [view, sourceId, sourcesState.loading, sourcesState.data]);
+  const comparisons = useSourceComparisons(wid, compareIds);
+  const movers = useMoverRows(view === 'movers' ? wid : null, comparisons);
 
-  // Movers shows only rows that actually carry a delta; a source scope in
-  // movers view narrows client-side (the movers query is global).
-  const scopedRows = useMemo(() => {
-    if (view !== 'movers') return loaded;
-    let list = loaded.filter((p) => p.delta?.pPct !== undefined || p.delta?.p !== undefined);
-    if (sourceId) list = list.filter((p) => p.sourceIds?.includes(sourceId));
-    return list;
-  }, [loaded, view, sourceId]);
+  // In a source's scope, Latest shows each product as that source's last
+  // run saw it, with the delta against the run before.
+  const overlay = view === 'latest' && sourceId ? comparisons.data[0] : undefined;
+  const latestRows = useMemo(() => {
+    if (!overlay) return latest.data;
+    return latest.data.map((p) => {
+      const cmp = overlay.byAsin.get(p.asin);
+      return cmp ? asSeenBy(p, cmp, overlay.latest) : p;
+    });
+  }, [latest.data, overlay]);
+
+  const scopedRows = view === 'movers' ? movers.data.rows : latestRows;
+  const loaded = scopedRows;
+  const state =
+    view === 'movers'
+      ? movers
+      : {
+          ...latest,
+          loading: latest.loading || (sourceId !== null && comparisons.loading),
+          error: latest.error ?? comparisons.error,
+          invalid: [...latest.invalid, ...comparisons.invalid],
+        };
 
   // An exact ASIN is read directly, so search reaches past the loaded pages.
   const query = search.trim().toLowerCase();
@@ -163,7 +181,13 @@ export default function Products() {
     if (invalid.length > 0) {
       reportError('export some rows', new Error(`${invalid.length} failed the schema check and were left out`));
     }
-    return sortRows(all.filter(matches), sorting);
+    const seen = overlay
+      ? all.map((p) => {
+          const cmp = overlay.byAsin.get(p.asin);
+          return cmp ? asSeenBy(p, cmp, overlay.latest) : p;
+        })
+      : all;
+    return sortRows(seen.filter(matches), sorting);
   };
   const exportCount = view === 'movers' || !latest.hasMore ? rows.length : query ? null : total;
 
@@ -198,17 +222,27 @@ export default function Products() {
 
   const loading = !wid || state.loading;
 
+  const moversLine = () => {
+    const { found, compared } = movers.data;
+    const n = found > MOVERS_SHOWN ? `top ${fmt(MOVERS_SHOWN)} of ${fmt(found)} movers` : `${fmt(found)} ${found === 1 ? 'mover' : 'movers'}`;
+    const only = compared.length === 1 ? compared[0] : null;
+    if (only) {
+      return only.prev
+        ? `${n} · run of ${only.latest.dayKey} against ${only.prev.dayKey}`
+        : `${n} · only one run so far`;
+    }
+    return `${n} across ${compared.length} ${compared.length === 1 ? 'source' : 'sources'}, each run against the one before`;
+  };
+
   const subtitle = loading
     ? 'Loading the board…'
     : [
+        view === 'movers' ? moversLine() : countLabel(rows.length, scopedRows.length, total, query !== ''),
         view === 'movers'
-          ? `${fmt(scopedRows.length)} movers`
-          : countLabel(rows.length, scopedRows.length, total, query !== ''),
-        view === 'movers'
-          ? sourceId
-            ? `biggest drops within the global top ${MOVERS_LIMIT}`
-            : 'biggest price drops first'
-          : 'latest observations',
+          ? 'biggest price drops first'
+          : overlay?.prev
+            ? `deltas against the run of ${overlay.prev.dayKey}`
+            : 'latest observations',
         sourceName ? `source: ${sourceName}` : null,
       ]
         .filter(Boolean)

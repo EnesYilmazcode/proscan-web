@@ -131,7 +131,7 @@ export default function BoardToolbar({
           type="button"
           className={clsx('board-seg__btn', view === 'movers' && 'board-seg__btn--on')}
           aria-pressed={view === 'movers'}
-          title="Biggest price drops across all sources"
+          title="Price changes between each source's latest two runs"
           onClick={() => onViewChange('movers')}
         >
           Movers
