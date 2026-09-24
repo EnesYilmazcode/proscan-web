@@ -71,7 +71,8 @@ async function signIn(page) {
   await page.click('.auth__cta');
 }
 
-const browser = await chromium.launch();
+// QA_CHROMIUM points at an already-installed Chromium when the pinned one is missing.
+const browser = await chromium.launch({ executablePath: process.env.QA_CHROMIUM || undefined });
 
 /* ════ DESKTOP ═══════════════════════════════════════════════════════ */
 const ctx = await browser.newContext({
