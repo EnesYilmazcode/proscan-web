@@ -22,7 +22,7 @@ import {
   type SortingState,
 } from '@tanstack/react-table';
 import { useDocOnce, useServerCount, useSnapshotQuery, useWorkspace } from '../lib/hooks';
-import { fetchAll, usePagedQuery, PAGE_SIZE } from '../lib/paging';
+import { fetchAll, pagedTotal, usePagedQuery, PAGE_SIZE } from '../lib/paging';
 import { reportError } from '../lib/errors';
 import {
   productRef,
@@ -91,9 +91,13 @@ export default function Products() {
   const latest = usePagedQuery<Product>(
     () => (view === 'latest' ? scopeQuery() : null),
     [wid, view, sourceId],
-    (p) => p.asin,
   );
-  const total = useServerCount(() => (view === 'latest' ? scopeQuery() : null), [wid, view, sourceId]);
+  const serverCount = useServerCount(
+    () => (view === 'latest' ? scopeQuery() : null),
+    [wid, view, sourceId],
+    latest.changes,
+  );
+  const total = pagedTotal(latest, serverCount);
 
   const sourcesState = useSnapshotQuery(
     () => (wid ? sourcesQuery(wid) : null),

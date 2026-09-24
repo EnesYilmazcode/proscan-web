@@ -10,6 +10,7 @@ import {
   createElement,
   useContext,
   useEffect,
+  useRef,
   useState,
   useSyncExternalStore,
   type DependencyList,
@@ -165,29 +166,42 @@ export function useSnapshotQuery<T>(
 /* ── server-side count (aggregate, no documents read) ───────────────── */
 
 /** getCountFromServer for a query. `null` while unknown or when the count
- *  failed; callers fall back to "showing first N". Re-runs on dep change. */
+ *  failed; callers fall back to "showing first N". Resets on dep change.
+ *  A change of `refresh` (say, a live list's snapshot counter) recounts
+ *  after a short pause and keeps the old number until the new one lands. */
 export function useServerCount(
   queryFactory: () => Query<unknown> | null,
   deps: DependencyList,
+  refresh: unknown = 0,
 ): number | null {
   const [count, setCount] = useState<number | null>(null);
+  const fresh = useRef(true);
   useEffect(() => {
-    const q = queryFactory();
+    fresh.current = true;
     setCount(null);
-    if (!q) return;
-    let cancelled = false;
-    getCountFromServer(q)
-      .then((snap) => {
-        if (!cancelled) setCount(snap.data().count);
-      })
-      .catch((error: unknown) => {
-        console.error('[proscan] count query failed', error);
-      });
-    return () => {
-      cancelled = true;
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
+  useEffect(() => {
+    const q = queryFactory();
+    if (!q) return;
+    let cancelled = false;
+    const delay = fresh.current ? 0 : 1000;
+    fresh.current = false;
+    const timer = setTimeout(() => {
+      getCountFromServer(q)
+        .then((snap) => {
+          if (!cancelled) setCount(snap.data().count);
+        })
+        .catch((error: unknown) => {
+          console.error('[proscan] count query failed', error);
+        });
+    }, delay);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [...deps, refresh]);
   return count;
 }
 

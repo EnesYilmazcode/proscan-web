@@ -7,7 +7,7 @@
 import { Fragment, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useServerCount, useSnapshotQuery, useWorkspace } from '../lib/hooks';
-import { usePagedQuery } from '../lib/paging';
+import { pagedTotal, usePagedQuery } from '../lib/paging';
 import { runsNewestFirst, sources } from '../lib/queries';
 import type { Source } from '../lib/types';
 import PageHeader from '../components/PageHeader';
@@ -30,10 +30,12 @@ export default function Runs() {
   const runsState = usePagedQuery(
     () => (wid ? runsNewestFirst(wid) : null),
     [wid],
-    (r) => r.runId,
     RUNS_PAGE,
   );
-  const total = useServerCount(() => (wid ? runsNewestFirst(wid) : null), [wid]);
+  const total = pagedTotal(
+    runsState,
+    useServerCount(() => (wid ? runsNewestFirst(wid) : null), [wid], runsState.changes),
+  );
   const sourcesState = useSnapshotQuery(
     () => (wid ? sources(wid) : null),
     [wid],
