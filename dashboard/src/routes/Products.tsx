@@ -20,7 +20,8 @@ import {
   type SortingState,
 } from '@tanstack/react-table';
 import { useDocOnce, useServerCount, useSnapshotQuery, useWorkspace } from '../lib/hooks';
-import { usePagedQuery, PAGE_SIZE } from '../lib/paging';
+import { fetchAll, usePagedQuery, PAGE_SIZE } from '../lib/paging';
+import { reportError } from '../lib/errors';
 import {
   productRef,
   productsBySource,
@@ -44,6 +45,7 @@ import BoardToolbar, {
 } from '../features/board/BoardToolbar';
 import BoardTable from '../features/board/BoardTable';
 import { boardColumns, dataColumnVisibility } from '../features/board/columns';
+import { sortRows } from '../features/board/sortRows';
 import '../features/board/board.css';
 
 const MOVERS_LIMIT = 100;
@@ -150,8 +152,20 @@ export default function Products() {
     getRowId: (p) => p.asin,
   });
 
-  // What the user currently sees, in sorted order — the export contract.
-  const visibleSortedRows = table.getRowModel().rows.map((r) => r.original);
+  // Export writes the whole scope, not the loaded pages: every product,
+  // searched and sorted like the table. Movers are all loaded already.
+  const matches = (p: Product) =>
+    !query || p.asin.toLowerCase().includes(query) || (p.name ?? '').toLowerCase().includes(query);
+  const exportLoad = async (onProgress: (n: number) => void): Promise<Product[]> => {
+    const base = scopeQuery();
+    if (view === 'movers' || !base || !latest.hasMore) return table.getRowModel().rows.map((r) => r.original);
+    const { rows: all, invalid } = await fetchAll(base, onProgress);
+    if (invalid.length > 0) {
+      reportError('export some rows', new Error(`${invalid.length} failed the schema check and were left out`));
+    }
+    return sortRows(all.filter(matches), sorting);
+  };
+  const exportCount = view === 'movers' || !latest.hasMore ? rows.length : query ? null : total;
 
   /* ── URL writers ──────────────────────────────────────────────── */
 
@@ -287,7 +301,8 @@ export default function Products() {
             sourceId={sourceId}
             sources={sourcesState.data}
             onSourceChange={changeSource}
-            exportRows={visibleSortedRows}
+            exportLoad={exportLoad}
+            exportCount={exportCount}
           />
         }
       />

@@ -128,3 +128,25 @@ export function usePagedQuery<T>(
     loadMore,
   };
 }
+
+/** Every document of `q`, read `size` at a time with a cursor. For export. */
+export async function fetchAll<T>(
+  q: Query<T>,
+  onProgress?: (loaded: number) => void,
+  size = 500,
+): Promise<{ rows: T[]; invalid: SchemaProblem[] }> {
+  const rows: T[] = [];
+  const invalid: SchemaProblem[] = [];
+  let cursor: QueryDocumentSnapshot<T> | null = null;
+  for (;;) {
+    const page: Query<T> = cursor ? query(q, startAfter(cursor), limit(size)) : query(q, limit(size));
+    const snap = await getDocs(page);
+    const part: Page<T> = toPage(snap.docs, size);
+    rows.push(...part.rows);
+    invalid.push(...part.invalid);
+    onProgress?.(rows.length);
+    if (!part.full || !part.last) break;
+    cursor = part.last;
+  }
+  return { rows, invalid };
+}

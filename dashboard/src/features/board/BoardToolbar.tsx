@@ -1,7 +1,7 @@
-// Delta-board toolbar — search-in-loaded-set, Latest|Movers segmented
-// toggle (gold active), source scope dropdown (synced to ?source=), the
-// buyer-semantics legend popover and the XLSX export of the currently
-// visible sorted rows. Pure presentation: all state lives in the route.
+// Delta-board toolbar — search, Latest|Movers segmented toggle (gold
+// active), source scope dropdown (synced to ?source=), the buyer-semantics
+// legend popover and the XLSX export of the whole scope. Pure
+// presentation: all state lives in the route.
 
 import { useEffect, useRef, useState } from 'react';
 import { clsx } from 'clsx';
@@ -83,8 +83,10 @@ export interface BoardToolbarProps {
   sourceId: string | null;
   sources: Source[];
   onSourceChange: (sourceId: string | null) => void;
-  /** Currently visible rows in sorted order — exactly what Export writes. */
-  exportRows: Product[];
+  /** Fetches every row Export writes: the whole scope, searched and sorted. */
+  exportLoad: (onProgress: (loaded: number) => void) => Promise<Product[]>;
+  /** Rows Export will write, when known before fetching. */
+  exportCount: number | null;
 }
 
 export default function BoardToolbar({
@@ -95,7 +97,8 @@ export default function BoardToolbar({
   sourceId,
   sources,
   onSourceChange,
-  exportRows,
+  exportLoad,
+  exportCount,
 }: BoardToolbarProps) {
   const options = [...sources].sort((a, b) =>
     sourceLabel(a).localeCompare(sourceLabel(b)),
@@ -112,7 +115,7 @@ export default function BoardToolbar({
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}
         placeholder="Search name or ASIN"
-        aria-label="Search loaded products by name or ASIN"
+        aria-label="Search products by name or ASIN"
         spellCheck={false}
       />
       <div className="board-seg" aria-label="View mode">
@@ -150,7 +153,7 @@ export default function BoardToolbar({
         ))}
       </select>
       <LegendPopover />
-      <ExportButton rows={exportRows} />
+      <ExportButton load={exportLoad} count={exportCount} />
     </div>
   );
 }

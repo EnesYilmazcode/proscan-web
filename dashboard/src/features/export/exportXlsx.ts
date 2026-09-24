@@ -1,6 +1,6 @@
-// XLSX export — writes the ALREADY-LOADED view rows to an FBA-lead-list
-// workbook (zero extra Firestore reads — read-cost hygiene). The heavy
-// `xlsx` (SheetJS) package is loaded via dynamic import() inside
+// XLSX export — writes the rows ExportButton fetched (the whole scope, read
+// a page at a time) to an FBA-lead-list workbook. The heavy `xlsx`
+// (SheetJS) package is loaded via dynamic import() inside
 // exportProductsXlsx so it stays out of the main chunk; the row-shaping
 // logic below (buildRows / defaultFilename) is pure and testable.
 
