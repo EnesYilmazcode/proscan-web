@@ -2,9 +2,17 @@ import { initializeApp } from 'firebase/app';
 import { connectAuthEmulator, getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
 
-// In dev the app runs entirely against the local emulator suite. The 'demo-'
-// project-id prefix is reserved by Firebase for emulator-only projects, so the
-// SDK can never reach production from a dev build.
+// Vite inlines VITE_* values at build time, so this is a literal in the
+// bundle. `VITE_USE_EMULATOR=true npm run build:dashboard` gives a prod-shaped
+// bundle that talks to the emulators, and dev can opt out with =false.
+const flag = import.meta.env.VITE_USE_EMULATOR;
+export const USE_EMULATOR = flag === 'true' || (flag !== 'false' && import.meta.env.DEV);
+
+const AUTH_PORT = Number(import.meta.env.VITE_AUTH_EMULATOR_PORT || 9099);
+const FIRESTORE_PORT = Number(import.meta.env.VITE_FIRESTORE_EMULATOR_PORT || 8080);
+
+// The 'demo-' project-id prefix is reserved by Firebase for emulator-only
+// projects, so this config can never reach production.
 const devConfig = {
   projectId: 'demo-proscan',
   apiKey: 'demo-key',
@@ -22,7 +30,7 @@ const prodConfig = {
   messagingSenderId: '886322190589',
 };
 
-export const app = initializeApp(import.meta.env.DEV ? devConfig : prodConfig);
+export const app = initializeApp(USE_EMULATOR ? devConfig : prodConfig);
 export const auth = getAuth(app);
 
 // Single shared Google provider. `select_account` forces the chooser every
@@ -33,7 +41,7 @@ export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 export const db = getFirestore(app);
 
-if (import.meta.env.DEV) {
-  connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
-  connectFirestoreEmulator(db, '127.0.0.1', 8080);
+if (USE_EMULATOR) {
+  connectAuthEmulator(auth, `http://127.0.0.1:${AUTH_PORT}`, { disableWarnings: true });
+  connectFirestoreEmulator(db, '127.0.0.1', FIRESTORE_PORT);
 }

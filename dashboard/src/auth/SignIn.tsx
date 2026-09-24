@@ -6,7 +6,7 @@ import {
   signInWithPopup,
 } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
-import { auth, googleProvider } from '../firebase';
+import { auth, googleProvider, USE_EMULATOR } from '../firebase';
 import Button from '../components/Button';
 import { RadarIcon } from '../components/EmptyState';
 import GoogleButton from './GoogleButton';
@@ -317,7 +317,7 @@ export default function SignIn() {
             <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.
           </p>
 
-          {import.meta.env.DEV ? (
+          {USE_EMULATOR ? (
             <button
               type="button"
               className="auth__hint"
