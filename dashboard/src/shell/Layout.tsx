@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import Toaster from '../components/Toaster';
+import ExtensionPassword from '../auth/ExtensionPassword';
 import './shell.css';
 
 /** App shell grid: 232px chrome sidebar + topbar + light content area.
@@ -16,6 +17,7 @@ export default function Layout() {
         <Topbar />
         <main className="shell__content">
           <div className="shell__container stagger" key={pathname}>
+            <ExtensionPassword />
             <Outlet />
           </div>
         </main>
