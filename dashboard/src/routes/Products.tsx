@@ -29,6 +29,7 @@ import {
 import type { Product } from '../lib/types';
 import PageHeader from '../components/PageHeader';
 import EmptyState from '../components/EmptyState';
+import ErrorState from '../components/ErrorState';
 import Skeleton from '../components/Skeleton';
 import Button from '../components/Button';
 import HistoryDrawer from '../features/drawer/HistoryDrawer';
@@ -163,10 +164,7 @@ export default function Products() {
     );
   } else if (products.error) {
     body = (
-      <EmptyState
-        title="Couldn't load the board"
-        body="The products listener failed — check your connection and reload."
-      />
+      <ErrorState title="Couldn't load the board" error={products.error} />
     );
   } else if (scopedRows.length === 0) {
     if (view === 'movers') {

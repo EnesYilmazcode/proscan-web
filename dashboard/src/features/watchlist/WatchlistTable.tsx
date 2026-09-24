@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import Chip from '../../components/Chip';
 import Tag from '../../components/Tag';
 import { sourcePatch } from '../../lib/queries';
+import { reportError } from '../../lib/errors';
 import {
   compactNumber,
   relativeTime,
@@ -50,7 +51,7 @@ function identity(source: Source): string {
 }
 
 function logPatchError(err: unknown): void {
-  console.error('[proscan:watchlist] source patch failed', err);
+  reportError('save the watchlist change', err);
 }
 
 /* ── inline icons (16px, stroke = currentColor) ─────────────────── */

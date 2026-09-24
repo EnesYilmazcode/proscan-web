@@ -8,6 +8,7 @@ import { sources } from '../lib/queries';
 import { staleness } from '../lib/format';
 import PageHeader from '../components/PageHeader';
 import EmptyState from '../components/EmptyState';
+import ErrorState from '../components/ErrorState';
 import Skeleton from '../components/Skeleton';
 import Button from '../components/Button';
 import { CWS_URL } from '../auth/SignIn';
@@ -48,10 +49,7 @@ export default function Watchlist() {
     );
   } else if (error) {
     body = (
-      <EmptyState
-        title="Couldn't load the watchlist"
-        body="The sources listener failed — check your connection and reload."
-      />
+      <ErrorState title="Couldn't load the watchlist" error={error} />
     );
   } else if (!wid || data.length === 0) {
     body = (
