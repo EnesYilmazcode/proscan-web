@@ -19,7 +19,8 @@
     "test:rules": "node scripts/emulators.mjs exec \"node scripts/qa-sync-rules.mjs && node scripts/qa-lead-rules.mjs && node scripts/qa-board-count.mjs\"",
     "test:hosting": "node scripts/emulators.mjs exec --only hosting \"node scripts/qa-hosting.mjs\"",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
-    "test": "npm run typecheck && npm run build && node scripts/check-bundle.mjs && npm run test:rules"
+    "check:schema": "node scripts/check-schema.mjs",
+    "test": "npm run typecheck && npm run check:schema && npm run build && node scripts/check-bundle.mjs && npm run test:rules"
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.2.8",
