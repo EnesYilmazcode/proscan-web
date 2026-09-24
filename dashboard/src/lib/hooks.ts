@@ -18,6 +18,7 @@ import {
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import {
   doc,
+  getCountFromServer,
   getDoc,
   onSnapshot,
   type DocumentReference,
@@ -154,6 +155,35 @@ export function useSnapshotQuery<T>(
   }, deps);
 
   return state;
+}
+
+/* ── server-side count (aggregate, no documents read) ───────────────── */
+
+/** getCountFromServer for a query. `null` while unknown or when the count
+ *  failed; callers fall back to "showing first N". Re-runs on dep change. */
+export function useServerCount(
+  queryFactory: () => Query<unknown> | null,
+  deps: DependencyList,
+): number | null {
+  const [count, setCount] = useState<number | null>(null);
+  useEffect(() => {
+    const q = queryFactory();
+    setCount(null);
+    if (!q) return;
+    let cancelled = false;
+    getCountFromServer(q)
+      .then((snap) => {
+        if (!cancelled) setCount(snap.data().count);
+      })
+      .catch((error: unknown) => {
+        console.error('[proscan] count query failed', error);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+  return count;
 }
 
 /* ── one-shot doc read (history / snapshots — NEVER listeners) ──────── */
