@@ -50,5 +50,17 @@ const missing = await get('/dashboard/assets/PriceHistoryChart-OLDHASH.js');
 check('missing asset is a 404', missing.status === 404, `${missing.status} ${missing.type}`);
 check('missing asset is not the SPA shell', !missing.body.includes('id="root"'));
 
+const version = await get('/version.json');
+if (version.status === 200) {
+  let sha = null;
+  try {
+    sha = JSON.parse(version.body).sha;
+  } catch {}
+  check('/version.json has a sha', typeof sha === 'string' && sha.length >= 7, version.body.slice(0, 80));
+  check('/version.json is no-cache', version.cache === 'no-cache', version.cache);
+} else {
+  check('/version.json exists', false, `${version.status}`);
+}
+
 console.log(failed === 0 ? '\nRESULT: PASS' : `\nRESULT: FAIL (${failed})`);
 process.exit(failed === 0 ? 0 : 1);
