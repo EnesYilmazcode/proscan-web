@@ -8,6 +8,7 @@ import {
   EmailAuthProvider,
   linkWithCredential,
   reauthenticateWithPopup,
+  updatePassword,
   type User,
 } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
@@ -23,7 +24,7 @@ export function hasPassword(user: User): boolean {
 }
 
 function message(err: unknown): string {
-  const code = err instanceof FirebaseError ? err.code : '';
+  const code = codeOf(err);
   switch (code) {
     case 'auth/weak-password':
       return `Use at least ${MIN_PASSWORD} characters.`;
@@ -42,16 +43,30 @@ function message(err: unknown): string {
   }
 }
 
-async function link(user: User, password: string): Promise<void> {
-  const credential = EmailAuthProvider.credential(user.email!, password);
+const codeOf = (err: unknown) => (err instanceof FirebaseError ? err.code : '');
+
+async function linkOnce(user: User, password: string): Promise<void> {
   try {
-    await linkWithCredential(user, credential);
-  } catch (err) {
-    if (err instanceof FirebaseError && err.code === 'auth/provider-already-linked') return;
-    if (!(err instanceof FirebaseError) || err.code !== 'auth/requires-recent-login') throw err;
-    // An old Google session: confirm it, then link.
-    await reauthenticateWithPopup(user, googleProvider);
     await linkWithCredential(user, EmailAuthProvider.credential(user.email!, password));
+  } catch (err) {
+    if (codeOf(err) === 'auth/provider-already-linked') return;
+    // The account's own email counts as taken where the backend checks
+    // every account, as the Auth emulator does. With one account per email
+    // the only holder is this account, and a password set on it adds the
+    // same email provider.
+    if (codeOf(err) !== 'auth/email-already-in-use') throw err;
+    await updatePassword(user, password);
+  }
+}
+
+async function link(user: User, password: string): Promise<void> {
+  try {
+    await linkOnce(user, password);
+  } catch (err) {
+    if (codeOf(err) !== 'auth/requires-recent-login') throw err;
+    // An old Google session: confirm it, then try again.
+    await reauthenticateWithPopup(user, googleProvider);
+    await linkOnce(user, password);
   }
   await user.reload();
 }
