@@ -11,10 +11,11 @@ import { chromium } from 'playwright';
 import { mkdirSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const BASE = 'http://localhost:5173/dashboard/';
+const BASE = process.env.QA_BASE_URL || 'http://localhost:5173/dashboard/';
 const OUT = resolve('.screenshots/qa');
 const WID = '9f8aKq2WLxYpB3vN7cE5dRm1tUo2';
-const FIRESTORE_DOCS = `http://127.0.0.1:8080/v1/projects/demo-proscan/databases/(default)/documents/workspaces/${WID}`;
+const FS_HOST = process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8080';
+const FIRESTORE_DOCS = `http://${FS_HOST}/v1/projects/demo-proscan/databases/(default)/documents/workspaces/${WID}`;
 
 mkdirSync(OUT, { recursive: true });
 

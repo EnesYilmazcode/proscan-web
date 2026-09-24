@@ -13,9 +13,10 @@
     "typecheck": "tsc -p dashboard/tsconfig.json --noEmit",
     "preview": "vite preview",
     "deploy": "npm run build && firebase deploy --only hosting",
-    "emulators": "firebase emulators:start --project demo-proscan",
-    "emulators:persist": "firebase emulators:start --project demo-proscan --import=./.emulator-data --export-on-exit=./.emulator-data",
-    "seed": "node scripts/seed-emulators.mjs"
+    "emulators": "node scripts/emulators.mjs start",
+    "emulators:persist": "node scripts/emulators.mjs start --import=./.emulator-data --export-on-exit=./.emulator-data",
+    "seed": "node scripts/seed-emulators.mjs",
+    "test:rules": "node scripts/emulators.mjs exec \"node scripts/qa-sync-rules.mjs\""
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.2.8",
