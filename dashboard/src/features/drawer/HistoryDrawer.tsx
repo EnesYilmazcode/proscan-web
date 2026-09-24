@@ -12,6 +12,7 @@ import Drawer from '../../components/Drawer';
 import EmptyState from '../../components/EmptyState';
 import ErrorState from '../../components/ErrorState';
 import { errorLabel } from '../../lib/errors';
+import SchemaNotice from '../../components/SchemaNotice';
 import KeyValue from '../../components/KeyValue';
 import Skeleton from '../../components/Skeleton';
 import Sparkline, { type SparklinePoint } from '../../components/Sparkline';
@@ -149,6 +150,8 @@ export default function HistoryDrawer({ wid, asin, onClose }: HistoryDrawerProps
         <DrawerSkeleton />
       ) : product.error ? (
         <ErrorState title="Couldn't load this product" error={product.error} />
+      ) : product.invalid ? (
+        <SchemaNotice invalid={[product.invalid]} />
       ) : !p ? (
         <EmptyState
           title="Not tracked yet"
@@ -167,7 +170,7 @@ export default function HistoryDrawer({ wid, asin, onClose }: HistoryDrawerProps
                 </div>
               )}
               <div className="hd-head__main">
-                <div className="hd-head__name" title={p.name}>
+                <div className="hd-head__name" title={p.name ?? undefined}>
                   {p.name ?? asin}
                 </div>
                 <div className="hd-head__meta">
@@ -224,6 +227,8 @@ export default function HistoryDrawer({ wid, asin, onClose }: HistoryDrawerProps
             </div>
             {history.loading ? (
               <Skeleton height={220} />
+            ) : history.invalid ? (
+              <SchemaNotice invalid={[history.invalid]} />
             ) : history.error ? (
               <div className="hd-error" role="alert">
                 Couldn't load history: {errorLabel(history.error)}

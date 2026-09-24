@@ -15,11 +15,15 @@
     "deploy": "node scripts/deploy-check.mjs && npm run build && node scripts/check-bundle.mjs && firebase deploy --project proscanbot --only hosting,firestore:rules,firestore:indexes",
     "emulators": "node scripts/emulators.mjs start",
     "emulators:persist": "node scripts/emulators.mjs start --import=./.emulator-data --export-on-exit=./.emulator-data",
-    "seed": "node scripts/seed-emulators.mjs",
-    "test:rules": "node scripts/emulators.mjs exec \"node scripts/qa-sync-rules.mjs && node scripts/qa-lead-rules.mjs && node scripts/qa-board-count.mjs\"",
+    "seed": "node scripts/seed-extension.mjs",
+    "seed:fixture": "node scripts/seed-emulators.mjs",
+    "test:rules": "node scripts/emulators.mjs exec \"node scripts/qa-sync-rules.mjs && node scripts/qa-lead-rules.mjs && node scripts/qa-board-count.mjs && node scripts/qa-adversarial-rules.mjs\"",
     "test:hosting": "node scripts/emulators.mjs exec --only hosting \"node scripts/qa-hosting.mjs\"",
+    "test:e2e": "node scripts/emulators.mjs exec \"node scripts/e2e.mjs\"",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
-    "test": "npm run typecheck && npm run build && node scripts/check-bundle.mjs && npm run test:rules"
+    "test:unit": "node --experimental-strip-types --no-warnings --test \"dashboard/test/*.test.mjs\"",
+    "check:schema": "node scripts/check-schema.mjs",
+    "test": "npm run typecheck && npm run check:schema && npm run test:unit && npm run build && node scripts/check-bundle.mjs && npm run test:rules"
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.2.8",

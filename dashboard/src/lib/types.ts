@@ -1,12 +1,15 @@
-// ProScan data contract — TypeScript mirrors of the Firestore schema in
-// docs/architecture/data-model.md. All money fields are INTEGER CENTS;
-// format exclusively via lib/format.ts. Compact point keys are shared by
-// latest / prev / history.d values / page items.
+// Dashboard types. The extension-written shapes come from the shared
+// schema (packages/schema, vendored from the extension); this file adds
+// the dashboard-owned fields (lead, tags, nickname, cadence) and the
+// Phase 5 spread fields nothing writes yet. Money is integer cents; format
+// it through lib/format.ts.
 
 import type { Timestamp } from 'firebase/firestore';
+import type { PageDoc as SchemaPageDoc, RunDoc } from '../../../packages/schema/index.js';
 
 /** Compact observation point. Every field may be absent (e.g. `p` is
- *  omitted when the price parse failed). Money fields are cents. */
+ *  omitted when the price parse failed). Money fields are cents. p, r, v,
+ *  pr, rk and sp are schema v1; the rest are reserved for Phase 5. */
 export interface Point {
   /** price ¢ */
   p?: number;
@@ -134,14 +137,15 @@ export interface ProductLead {
 /** Canonical ASIN doc — workspaces/{wid}/products/{asin}.
  *  spread / scores / verdict / delta / lead MAY BE ABSENT. */
 export interface Product {
+  sv?: number;
   asin: string;
   mk: string;
-  name?: string;
-  img?: string;
+  name?: string | null;
+  img?: string | null;
   url?: string;
   latest?: ObservedPoint;
-  prev?: ObservedPoint;
-  delta?: ProductDelta;
+  prev?: ObservedPoint | null;
+  delta?: ProductDelta | null;
   spread?: ProductSpread;
   scores?: ProductScores;
   verdict?: ProductVerdict;
@@ -162,42 +166,28 @@ export interface RunCounters {
   newSeen?: number;
 }
 
-/** Scrape-run header — workspaces/{wid}/runs/{runId}. */
-export interface Run {
-  runId: string;
-  sourceId: string;
-  source?: {
-    type?: SourceType;
-    sellerId?: string | null;
-    keyword?: string | null;
-    url?: string;
-  };
-  mk?: string;
-  /** UTC date of startedAt, 'YYYY-MM-DD' */
-  dayKey?: string;
-  startedAt?: Timestamp;
-  /** null while active */
-  finishedAt?: Timestamp | null;
-  status: RunStatus;
-  pagesDone?: number;
-  pagesPlanned?: number;
-  totalResultsOnSerp?: number;
-  counters?: RunCounters;
+/** Scrape-run header — workspaces/{wid}/runs/{runId}. dayKey is the
+ *  local date where the scan ran. */
+export type Run = RunDoc<Timestamp> & {
   /** user-renamable run card */
   label?: string | null;
-}
+};
+
+/** One page of a run — workspaces/{wid}/runs/{runId}/pages/{pageId}. */
+export type PageDoc = SchemaPageDoc<Timestamp>;
 
 export type SourceType = 'storefront' | 'keyword';
 
 /** Watchlist entry — workspaces/{wid}/sources/{sourceId}. */
 export interface Source {
+  sv?: number;
   sourceId: string;
   type: SourceType;
   /** null for keyword sources */
   sellerId?: string | null;
   keyword?: string | null;
   nickname?: string | null;
-  url?: string;
+  url?: string | null;
   watched?: boolean;
   /** Rescan Queue: staleness = now − lastScrapedAt vs cadence */
   cadenceDays?: number;
@@ -210,8 +200,9 @@ export interface Source {
 }
 
 /** Date-keyed time-series — products/{asin}/history/daily.
- *  One Point per UTC dayKey; spread-day extras merged into the same entry. */
+ *  One Point per dayKey; spread-day extras merged into the same entry. */
 export interface HistoryDoc {
+  sv?: number;
   asin: string;
   d: Record<string, Point>;
 }

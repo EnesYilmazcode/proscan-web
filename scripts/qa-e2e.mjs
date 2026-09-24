@@ -1,5 +1,7 @@
 // Throwaway integration-QA driver (Playwright, emulator-connected DEV server).
 // Usage: node scripts/qa-e2e.mjs
+// Runs on the `npm run seed:fixture` data, which predates the shared
+// schema; the dashboard now hides it. scripts/e2e.mjs replaces this.
 // - signs in as dev@proscan.test / proscan-dev
 // - walks every screen, screenshots to .screenshots/qa/
 // - functional assertions: drawer URL contract, stage-change persistence,

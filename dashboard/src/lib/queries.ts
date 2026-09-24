@@ -3,13 +3,14 @@
 // auditable in one file (docs/ops/billing-runbook.md):
 //   * products are ALWAYS scoped (per-source / top-N / recent-N) — never
 //     the whole collection;
-//   * runs list is capped at 30;
+//   * runs are paged 30 at a time;
 //   * sources is the only whole-collection read (tiny by design);
 //   * history + offerSnapshots are one-shot fetch material.
 
 import {
   collection,
   doc,
+  documentId,
   getDocs,
   limit,
   orderBy,
@@ -23,10 +24,18 @@ import {
   type Query,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import {
+  historyConverter,
+  pageConverter,
+  productConverter,
+  runConverter,
+  sourceConverter,
+} from './checked';
 import type {
   HistoryDoc,
   LeadStage,
   OfferSnapshot,
+  PageDoc,
   Product,
   ProductEvent,
   ProductLead,
@@ -34,20 +43,13 @@ import type {
   Source,
 } from './types';
 
-/* ── converters (id-stamping, cast-only — schema lives in types.ts) ─── */
+/* ── converters: checked against the shared schema (lib/checked.ts) ─── */
 
-function converter<T extends DocumentData>(): FirestoreDataConverter<T> {
-  return {
-    toFirestore: (data) => data as DocumentData,
-    fromFirestore: (snap) => snap.data() as T,
-  };
-}
-
-const productConverter = converter<Product>();
-const runConverter = converter<Run>();
-const sourceConverter = converter<Source>();
-const historyConverter = converter<HistoryDoc>();
-const snapshotConverter = converter<OfferSnapshot>();
+// Offer snapshots are Phase 5 and not in the schema yet.
+const snapshotConverter: FirestoreDataConverter<OfferSnapshot> = {
+  toFirestore: (data) => data as DocumentData,
+  fromFirestore: (snap) => snap.data() as OfferSnapshot,
+};
 
 function productsCol(wid: string) {
   return collection(db, 'workspaces', wid, 'products').withConverter(
@@ -75,28 +77,45 @@ export function productsBySource(
   return lim === null ? q : query(q, limit(lim));
 }
 
-/** Global Movers / Flip Radar: biggest price DROPS first (delta.pPct asc —
- *  most-negative = best buying opportunity). Single-field index. */
-export function topMovers(wid: string, lim: number | null = 100): Query<Product> {
-  const q = query(productsCol(wid), orderBy('delta.pPct', 'asc'));
-  return lim === null ? q : query(q, limit(lim));
-}
-
 /** Most recently observed products across all sources. */
 export function recentProducts(wid: string, lim: number | null = 200): Query<Product> {
   const q = query(productsCol(wid), orderBy('latest.at', 'desc'));
   return lim === null ? q : query(q, limit(lim));
 }
 
+/** One product by ASIN, for exact search past the loaded pages. */
+export function productRef(wid: string, asin: string): DocumentReference<Product> {
+  return doc(db, 'workspaces', wid, 'products', asin).withConverter(productConverter);
+}
+
 /* ── runs / sources ─────────────────────────────────────────────────── */
 
-/** Run Inbox — newest first, HARD-capped at 30 (read hygiene). */
-export function runsRecent(wid: string, lim = 30): Query<Run> {
+/** Run Inbox — newest first, no limit: page it with usePagedQuery. */
+export function runsNewestFirst(wid: string): Query<Run> {
   return query(
     collection(db, 'workspaces', wid, 'runs').withConverter(runConverter),
     orderBy('startedAt', 'desc'),
-    limit(Math.min(lim, 30)),
   );
+}
+
+/** A source's newest runs. Index: runs(sourceId asc, startedAt desc). */
+export function runsOfSource(wid: string, sourceId: string, lim: number): Query<Run> {
+  return query(
+    collection(db, 'workspaces', wid, 'runs').withConverter(runConverter),
+    where('sourceId', '==', sourceId),
+    orderBy('startedAt', 'desc'),
+    limit(lim),
+  );
+}
+
+/** A run's page chunks, one-shot material for run comparisons. */
+export function runPages(wid: string, runId: string): Query<PageDoc> {
+  return collection(db, 'workspaces', wid, 'runs', runId, 'pages').withConverter(pageConverter);
+}
+
+/** Up to 30 products by ASIN (the `in` limit). */
+export function productsByAsin(wid: string, asins: string[]): Query<Product> {
+  return query(productsCol(wid), where(documentId(), 'in', asins.slice(0, 30)));
 }
 
 /** Whole sources collection (the watchlist spine — tiny by design;

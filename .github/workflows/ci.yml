@@ -11,9 +11,20 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
+    env:
+      PROSCAN_EXT: ${{ github.workspace }}/extension
     steps:
       - uses: actions/checkout@v4
+
+      # The schema check, the sync rules test and the e2e run the
+      # extension's own schema, engine and sync module. Its main branch has
+      # to carry packages/schema (extension 2.3).
+      - uses: actions/checkout@v4
+        with:
+          repository: EnesYilmazcode/AmazonSellerScraper
+          ref: main
+          path: extension
 
       - uses: actions/setup-node@v4
         with:
@@ -33,10 +44,18 @@ jobs:
           key: firebase-emulators-15.8.0
 
       - run: npm ci
+      - run: npm ci
+        working-directory: extension
       - run: npm install -g firebase-tools@15.8.0
 
       - name: Typecheck
         run: npm run typecheck
+
+      - name: Schema matches the extension
+        run: npm run check:schema
+
+      - name: Unit tests
+        run: npm run test:unit
 
       - name: Build
         run: npm run build
@@ -54,3 +73,9 @@ jobs:
         env:
           VITE_USE_EMULATOR: 'true'
         run: npm run build && node scripts/check-bundle.mjs --emulator
+
+      - name: Install Chromium for the e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: End to end (emulator, production bundle)
+        run: npm run test:e2e
