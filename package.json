@@ -9,7 +9,7 @@
     "dev:dashboard": "vite --config vite.dashboard.config.ts",
     "build:landing": "vite build",
     "build:dashboard": "vite build --config vite.dashboard.config.ts",
-    "build": "npm run build:landing && npm run build:dashboard",
+    "build": "npm run clean && npm run build:landing && npm run build:dashboard",
     "typecheck": "tsc -p dashboard/tsconfig.json --noEmit",
     "preview": "vite preview",
     "deploy": "npm run build && firebase deploy --only hosting",
@@ -17,7 +17,8 @@
     "emulators:persist": "node scripts/emulators.mjs start --import=./.emulator-data --export-on-exit=./.emulator-data",
     "seed": "node scripts/seed-emulators.mjs",
     "test:rules": "node scripts/emulators.mjs exec \"node scripts/qa-sync-rules.mjs && node scripts/qa-lead-rules.mjs && node scripts/qa-board-count.mjs\"",
-    "test:hosting": "node scripts/emulators.mjs exec --only hosting \"node scripts/qa-hosting.mjs\""
+    "test:hosting": "node scripts/emulators.mjs exec --only hosting \"node scripts/qa-hosting.mjs\"",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.2.8",

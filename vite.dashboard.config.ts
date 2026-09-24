@@ -1,10 +1,11 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { buildStamp } from './scripts/build-info.mjs';
 
 export default defineConfig({
   root: 'dashboard',
   base: '/dashboard/',
-  plugins: [react()],
+  plugins: [react(), buildStamp()],
   build: {
     outDir: '../dist/dashboard',
     emptyOutDir: true,

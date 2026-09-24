@@ -7,6 +7,13 @@ interface ImportMetaEnv {
   readonly VITE_FIRESTORE_EMULATOR_PORT?: string;
 }
 
+declare const __PROSCAN_BUILD__: {
+  sha: string;
+  short: string;
+  dirty: boolean;
+  builtAt: string;
+};
+
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
