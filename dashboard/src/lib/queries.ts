@@ -87,6 +87,11 @@ export function recentProducts(wid: string, lim: number | null = 200): Query<Pro
   return lim === null ? q : query(q, limit(lim));
 }
 
+/** One product by ASIN, for exact search past the loaded pages. */
+export function productRef(wid: string, asin: string): DocumentReference<Product> {
+  return doc(db, 'workspaces', wid, 'products', asin).withConverter(productConverter);
+}
+
 /* ── runs / sources ─────────────────────────────────────────────────── */
 
 /** Run Inbox — newest first, HARD-capped at 30 (read hygiene). */
