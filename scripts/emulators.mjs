@@ -9,7 +9,7 @@
 // `exec` also hands the ports to the child as FIREBASE_AUTH_EMULATOR_HOST /
 // FIRESTORE_EMULATOR_HOST (set by firebase itself) and VITE_*_EMULATOR_PORT.
 
-import { spawn } from 'node:child_process';
+import { execSync, spawn } from 'node:child_process';
 import { readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -75,7 +75,35 @@ const child = spawn('firebase', args, {
   },
 });
 
-const cleanup = () => rmSync(configPath, { force: true });
+// On Windows the Firestore emulator's java.exe outlives firebase and keeps
+// its port. Kill whatever still listens on our emulator ports.
+function freePorts() {
+  if (process.platform !== 'win32') return;
+  let out = '';
+  try {
+    out = execSync('netstat -ano -p tcp', { encoding: 'utf8' });
+  } catch {
+    return;
+  }
+  const wanted = new Set([ports.firestore, ports.auth, ports.hub, ports.logging].map(String));
+  const pids = new Set();
+  for (const line of out.split('\n')) {
+    const m = line.trim().match(/^TCP\s+127\.0\.0\.1:(\d+)\s+\S+\s+LISTENING\s+(\d+)/);
+    if (m && wanted.has(m[1])) pids.add(m[2]);
+  }
+  for (const pid of pids) {
+    try {
+      execSync(`taskkill /PID ${pid} /F`, { stdio: 'ignore' });
+    } catch {
+      /* already gone */
+    }
+  }
+}
+
+const cleanup = () => {
+  rmSync(configPath, { force: true });
+  freePorts();
+};
 child.on('exit', (code, signal) => {
   cleanup();
   process.exit(signal ? 1 : (code ?? 1));
