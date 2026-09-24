@@ -125,7 +125,10 @@ export function useSnapshotQuery<T>(
     let mountReads = 0;
     const unsubscribe = onSnapshot(
       q,
+      { includeMetadataChanges: true },
       (snap) => {
+        // An empty answer from the cache is not "nothing there" (F-48).
+        if (snap.empty && snap.metadata.fromCache) return;
         if (firstSnapshot) {
           firstSnapshot = false;
           scanEnd(token);

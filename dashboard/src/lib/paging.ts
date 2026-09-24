@@ -70,9 +70,15 @@ export function usePagedQuery<T>(
     setLoadingMore(false);
     setActive(q !== null);
     if (!q) return;
+    // Metadata changes too, so the server's answer arrives even when it
+    // matches an empty cache (F-48).
     return onSnapshot(
       query(q, limit(size)),
-      (snap) => setFirst(toPage(snap.docs, size)),
+      { includeMetadataChanges: true },
+      (snap) => {
+        if (snap.empty && snap.metadata.fromCache) return;
+        setFirst(toPage(snap.docs, size));
+      },
       (err) => {
         console.error('[proscan] first page failed', err);
         setError(err);
