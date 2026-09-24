@@ -16,7 +16,7 @@
     "emulators": "node scripts/emulators.mjs start",
     "emulators:persist": "node scripts/emulators.mjs start --import=./.emulator-data --export-on-exit=./.emulator-data",
     "seed": "node scripts/seed-emulators.mjs",
-    "test:rules": "node scripts/emulators.mjs exec \"node scripts/qa-sync-rules.mjs && node scripts/qa-lead-rules.mjs && node scripts/qa-board-count.mjs\"",
+    "test:rules": "node scripts/emulators.mjs exec \"node scripts/qa-sync-rules.mjs && node scripts/qa-lead-rules.mjs && node scripts/qa-board-count.mjs && node scripts/qa-adversarial-rules.mjs\"",
     "test:hosting": "node scripts/emulators.mjs exec --only hosting \"node scripts/qa-hosting.mjs\"",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "check:schema": "node scripts/check-schema.mjs",
