@@ -1,5 +1,6 @@
 // Runs the Firebase emulators on ports taken from the environment, so two
-// checkouts (or a stuck Java process on 8080) don't collide.
+// checkouts (or a stuck Java process on 8080) don't collide. Ports that were
+// already taken when it started are never killed on exit.
 //
 //   node scripts/emulators.mjs start [extra firebase args]
 //   node scripts/emulators.mjs exec [--only auth,firestore] "<command>"
@@ -65,6 +66,50 @@ if (mode === 'start') {
 }
 args.push('--project', 'demo-proscan', '--config', '.firebase.emulators.json');
 
+// On Windows the Firestore emulator's java.exe outlives firebase and keeps
+// its port. On exit, kill what still listens on our emulator ports, but only
+// ports that were free before we started: a port someone else already held
+// (another checkout's emulators, a dev server) is theirs, not ours.
+const reapPorts = [ports.firestore, ports.auth, ports.hosting, ports.hub, ports.logging].map(String);
+
+function listeners() {
+  const byPort = new Map();
+  if (process.platform !== 'win32') return byPort;
+  let out = '';
+  try {
+    out = execSync('netstat -ano -p tcp', { encoding: 'utf8' });
+  } catch {
+    return byPort;
+  }
+  for (const line of out.split('\n')) {
+    const m = line.trim().match(/^TCP\s+\S+:(\d+)\s+\S+\s+LISTENING\s+(\d+)/);
+    if (!m) continue;
+    if (!byPort.has(m[1])) byPort.set(m[1], new Set());
+    byPort.get(m[1]).add(m[2]);
+  }
+  return byPort;
+}
+
+const heldBefore = new Set([...listeners().keys()].filter((p) => reapPorts.includes(p)));
+if (heldBefore.size) {
+  console.log(`[emulators] already in use, will not touch: ${[...heldBefore].join(', ')}`);
+}
+
+function freePorts() {
+  if (process.platform !== 'win32') return;
+  const pids = new Set();
+  for (const [port, set] of listeners()) {
+    if (reapPorts.includes(port) && !heldBefore.has(port)) for (const pid of set) pids.add(pid);
+  }
+  for (const pid of pids) {
+    try {
+      execSync(`taskkill /PID ${pid} /F`, { stdio: 'ignore' });
+    } catch {
+      /* already gone */
+    }
+  }
+}
+
 console.log(`[emulators] auth ${ports.auth}, firestore ${ports.firestore}, ui ${ports.ui}`);
 const child = spawn('firebase', args, {
   cwd: root,
@@ -77,33 +122,6 @@ const child = spawn('firebase', args, {
     EMU_HOSTING_PORT: String(ports.hosting),
   },
 });
-
-// On Windows the Firestore emulator's java.exe outlives firebase and keeps
-// its port. Kill whatever still listens on our emulator ports.
-function freePorts() {
-  if (process.platform !== 'win32') return;
-  let out = '';
-  try {
-    out = execSync('netstat -ano -p tcp', { encoding: 'utf8' });
-  } catch {
-    return;
-  }
-  const wanted = new Set(
-    [ports.firestore, ports.auth, ports.hosting, ports.hub, ports.logging].map(String),
-  );
-  const pids = new Set();
-  for (const line of out.split('\n')) {
-    const m = line.trim().match(/^TCP\s+127\.0\.0\.1:(\d+)\s+\S+\s+LISTENING\s+(\d+)/);
-    if (m && wanted.has(m[1])) pids.add(m[2]);
-  }
-  for (const pid of pids) {
-    try {
-      execSync(`taskkill /PID ${pid} /F`, { stdio: 'ignore' });
-    } catch {
-      /* already gone */
-    }
-  }
-}
 
 const cleanup = () => {
   rmSync(configPath, { force: true });
