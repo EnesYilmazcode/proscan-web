@@ -5,7 +5,7 @@
 
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { WEB_ROOT, requireExtension } from './lib/extension.mjs';
+import { WEB_ROOT, findExtension } from './lib/extension.mjs';
 
 const ours = resolve(WEB_ROOT, 'packages', 'schema', 'index.js');
 const types = readFileSync(resolve(WEB_ROOT, 'packages', 'schema', 'index.d.ts'), 'utf8');
@@ -22,9 +22,17 @@ const exported = [...src.matchAll(/^export (?:const|function) (\w+)/gm)].map((m)
 const missing = exported.filter((name) => !new RegExp(`declare (?:const|function) ${name}\\b`).test(types));
 check('index.d.ts declares every export', missing.length === 0, missing.join(', '));
 
-const ext = requireExtension('the schema check');
-const theirs = lf(readFileSync(resolve(ext, 'packages', 'schema', 'index.js'), 'utf8'));
-check(`index.js matches ${ext}`, theirs === src, 'copy the extension file over ours');
+// Without the extension only the byte comparison is skipped; the check
+// above still decides the exit code.
+const ext = findExtension();
+if (ext) {
+  const theirs = lf(readFileSync(resolve(ext, 'packages', 'schema', 'index.js'), 'utf8'));
+  check(`index.js matches ${ext}`, theirs === src, 'copy the extension file over ours');
+} else if (process.env.PROSCAN_ALLOW_NO_EXT === '1') {
+  console.log('  SKIP index.js matches the extension: no extension checkout (PROSCAN_ALLOW_NO_EXT=1)');
+} else {
+  check('extension checkout found', false, 'set PROSCAN_EXT, or PROSCAN_ALLOW_NO_EXT=1 to skip');
+}
 
 console.log(failed === 0 ? 'RESULT: PASS' : `RESULT: FAIL (${failed})`);
 process.exit(failed === 0 ? 0 : 1);
