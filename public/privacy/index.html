@@ -121,7 +121,7 @@
     <main class="container">
         <div class="summary">
             <span class="label">The short version</span>
-            <p>The ProScan extension saves what it scans in your own browser. ProScan has no server that receives your scans. The one exception is the AI chat: if you add your own Google Gemini API key and ask a question, your question and a list of the products from your scan go straight from your browser to Google. Cloud sync is turned off in version 2.1. We never ask for your Amazon login, and we never sell your data.</p>
+            <p>The ProScan extension saves what it scans in your own browser. ProScan has no server that receives your scans. The one exception is the AI chat: if you add your own Google Gemini API key and ask a question, your question, the recent chat, what you scanned and a list of the products it found go straight from your browser to Google. Cloud sync is turned off in version 2.1. We never ask for your Amazon login, and we never sell your data.</p>
         </div>
 
         <article>
@@ -170,6 +170,8 @@
                 <ul>
                     <li>Your question.</li>
                     <li>A list of products from your current scan: title, ASIN, price, rating, review count and Prime badge.</li>
+                    <li>What you scanned: the search keyword or seller storefront ID, and how many products the scan found.</li>
+                    <li>The last few questions and answers from this chat session, so Gemini can follow the conversation.</li>
                     <li>Your API key, so Google knows which account the request belongs to.</li>
                 </ul>
                 <p>The request goes directly from your browser to Google. It does not pass through ProScan, and we never see your questions, the answers or your key. Google is the processor here, and its handling of the data is set by the Gemini API terms for your key. If your key is on Google's free tier, those terms let Google use what you send to improve its products. Your key stays in local extension storage until you remove it or uninstall ProScan.</p>
