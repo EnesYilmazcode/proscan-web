@@ -52,9 +52,11 @@ service cloud.firestore {
                 request.resource.data.latest.dayKey is string
                 && (!('p' in request.resource.data.latest) || request.resource.data.latest.p is int)
                 && (!('v' in request.resource.data.latest) || request.resource.data.latest.v is int)))
+          // A lead with no stored stage is 'new' (the drawer never writes it).
           && (!('lead' in request.resource.data)
-              || request.resource.data.lead.stage in
-                 ['new', 'reviewing', 'approved', 'purchased', 'rejected', 'archived']);
+              || (request.resource.data.lead is map
+                  && request.resource.data.lead.get('stage', 'new') in
+                     ['new', 'reviewing', 'approved', 'purchased', 'rejected', 'archived']));
 
         match /history/{seriesId} {
           allow read: if member(wid);
