@@ -55,11 +55,11 @@ function countLabel(
   total: number | null,
 ): string {
   const noun = loaded === 1 ? 'product' : 'products';
-  if (!capped) {
+  if (!capped || (total !== null && total <= loaded)) {
     return visible === loaded ? `${fmt(loaded)} ${noun}` : `${fmt(visible)} of ${fmt(loaded)} ${noun}`;
   }
   const span =
-    total !== null && total > loaded
+    total !== null
       ? `first ${fmt(loaded)} of ${fmt(total)} ${noun}`
       : `first ${fmt(loaded)} ${noun}, more not loaded`;
   return visible === loaded ? `Showing the ${span}` : `${fmt(visible)} matches in the ${span}`;
