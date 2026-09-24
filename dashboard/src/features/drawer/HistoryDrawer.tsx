@@ -167,7 +167,7 @@ export default function HistoryDrawer({ wid, asin, onClose }: HistoryDrawerProps
                 </div>
               )}
               <div className="hd-head__main">
-                <div className="hd-head__name" title={p.name}>
+                <div className="hd-head__name" title={p.name ?? undefined}>
                   {p.name ?? asin}
                 </div>
                 <div className="hd-head__meta">
