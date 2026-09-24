@@ -5,7 +5,7 @@
 // extension writes.
 //
 //   npm run emulators          (one terminal)
-//   npm run seed:extension     (another)
+//   npm run seed               (another)
 
 process.env.FIRESTORE_EMULATOR_HOST ??= `127.0.0.1:${process.env.EMU_FIRESTORE_PORT || 8080}`;
 process.env.FIREBASE_AUTH_EMULATOR_HOST ??= `127.0.0.1:${process.env.EMU_AUTH_PORT || 9099}`;

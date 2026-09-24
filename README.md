@@ -40,8 +40,8 @@ npm install            # one-time
 npm run dev            # landing page dev server
 npm run dev:dashboard  # dashboard dev server, talks to the emulators
 npm run emulators      # auth + firestore + hosting emulators (project demo-proscan)
-npm run seed           # fixture data (firebase-admin) into the running emulators
-npm run seed:extension # data written by the extension's own sync module
+npm run seed           # scans written by the extension's own sync module
+npm run seed:fixture   # the older hand-made fixture (predates the schema)
 npm run build          # clean dist/, then build landing + dashboard
 npm test               # typecheck, schema check, unit tests, build, bundle check, rules tests
 npm run test:e2e       # extension sync seeds the emulator, the production bundle is checked
@@ -78,7 +78,7 @@ is left out of the view and counted in a notice. `firestore.rules` checks
 the same shapes on write.
 
 Several checks run the extension's real code from its checkout: the schema
-check, the sync rules test, the e2e and `seed:extension`. They look for it
+check, the sync rules test, the e2e and `npm run seed`. They look for it
 in `PROSCAN_EXT`, else `../ext` or `../AmazonSellerScraper`. Set
 `PROSCAN_ALLOW_NO_EXT=1` to skip them where there is no checkout. CI checks
 out the extension's `main`.
