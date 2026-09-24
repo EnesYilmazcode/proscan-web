@@ -40,9 +40,11 @@ npm install            # one-time
 npm run dev            # landing page dev server
 npm run dev:dashboard  # dashboard dev server, talks to the emulators
 npm run emulators      # auth + firestore + hosting emulators (project demo-proscan)
-npm run seed           # demo data into the running emulators
+npm run seed           # fixture data (firebase-admin) into the running emulators
+npm run seed:extension # data written by the extension's own sync module
 npm run build          # clean dist/, then build landing + dashboard
-npm test               # typecheck, build, bundle check, rules tests
+npm test               # typecheck, schema check, unit tests, build, bundle check, rules tests
+npm run test:e2e       # extension sync seeds the emulator, the production bundle is checked
 npm run test:hosting   # rewrites and cache headers (Linux or WSL only)
 npm run deploy         # hosting + firestore rules + indexes to proscanbot
 ```
@@ -60,6 +62,31 @@ Every build is stamped with its commit: `GET /version.json`, the
 refuses a dirty tree or a branch other than `main`, so the stamp always
 names a real commit. CI (`.github/workflows/ci.yml`) runs the same checks
 on every pull request.
+
+## The shared schema
+
+`packages/schema/index.js` is the extension's cloud schema, copied byte for
+byte from `packages/schema/index.js` in the extension repo. It holds the
+document shapes, validators and id builders for everything the extension
+writes. `index.d.ts` next to it is ours. `npm run check:schema` fails when
+the two copies differ; to update, copy the extension's file over ours and
+adjust `index.d.ts`.
+
+The dashboard reads every document through a converter that runs the
+schema's validator (`dashboard/src/lib/checked.ts`). A document that fails
+is left out of the view and counted in a notice. `firestore.rules` checks
+the same shapes on write.
+
+Several checks run the extension's real code from its checkout: the schema
+check, the sync rules test, the e2e and `seed:extension`. They look for it
+in `PROSCAN_EXT`, else `../ext` or `../AmazonSellerScraper`. Set
+`PROSCAN_ALLOW_NO_EXT=1` to skip them where there is no checkout. CI checks
+out the extension's `main`.
+
+`npm run test:e2e` builds the dashboard with `VITE_USE_EMULATOR=true` into
+`dist-e2e/`, serves it with `vite preview` and drives it with Playwright.
+`QA_CHROMIUM` points at an installed Chromium when Playwright's own is
+missing. Screenshots and the exported workbook land in `.screenshots/e2e/`.
 
 ## Revamp
 
