@@ -16,8 +16,8 @@ import {
   query,
   where,
   writeBatch,
-  Timestamp,
 } from 'firebase/firestore';
+import { productDoc } from './lib/docs.mjs';
 
 const app = initializeApp({ projectId: 'demo-proscan', apiKey: 'demo-key' }, 'board-count');
 const auth = getAuth(app);
@@ -42,11 +42,7 @@ try {
   const batch = writeBatch(db);
   for (let i = 0; i < N; i++) {
     const asin = `B0QACNT${String(i).padStart(3, '0')}`;
-    batch.set(doc(col, asin), {
-      asin,
-      sourceIds: [i % 2 ? 's_ODD' : 's_EVEN'],
-      latest: { p: 1000 + i, dayKey: '2026-09-01', at: Timestamp.fromMillis(1e12 + i) },
-    });
+    batch.set(doc(col, asin), productDoc(asin, { cents: 1000 + i, atMs: 1e12 + i, sourceId: i % 2 ? 's_ODD' : 's_EVEN' }));
   }
   await batch.commit();
 
