@@ -134,16 +134,6 @@ button.run-card:hover {
 }
 
 /* ── inline query-error notice ──────────────────────────────────── */
-.runs-error {
-  max-width: 760px;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--red);
-  border-radius: var(--radius-sm);
-  background: var(--red-soft);
-  color: var(--red);
-  font-size: 13px;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .run-progress__fill {
     animation: none;

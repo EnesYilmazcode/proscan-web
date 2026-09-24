@@ -131,11 +131,6 @@
   padding: 0 var(--space-4);
   font-size: 15px;
 }
-.hd-verdict--empty {
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--muted);
-}
 
 /* ── 3 · price history chart tooltip ─────────────────────────────── */
 .hd-tip {

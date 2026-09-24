@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import Toaster from '../components/Toaster';
 import './shell.css';
 
 /** App shell grid: 232px chrome sidebar + topbar + light content area.
@@ -19,6 +20,7 @@ export default function Layout() {
           </div>
         </main>
       </div>
+      <Toaster />
     </div>
   );
 }

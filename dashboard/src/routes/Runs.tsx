@@ -11,6 +11,7 @@ import { runsRecent, sources } from '../lib/queries';
 import type { Source } from '../lib/types';
 import PageHeader from '../components/PageHeader';
 import EmptyState from '../components/EmptyState';
+import ErrorState from '../components/ErrorState';
 import Button from '../components/Button';
 import { CWS_URL } from '../auth/SignIn';
 import RunCard, { RunCardSkeleton } from '../features/runs/RunCard';
@@ -56,9 +57,7 @@ export default function Runs() {
     );
   } else if (runsState.error) {
     body = (
-      <div className="runs-error" role="alert">
-        Could not load runs: {runsState.error.message}
-      </div>
+      <ErrorState title="Couldn't load runs" error={runsState.error} />
     );
   } else if (runsState.data.length === 0) {
     body = (

@@ -8,8 +8,9 @@
 //   source  -> productsBySource(wid, sourceId, 500)
 //   default -> recentProducts(wid, 300)
 // plus the sanctioned tiny sources listener for the scope dropdown.
-// Search, sorting and the movers' has-delta filter are client-side over
-// the loaded set only.
+// Search, sorting, export and the movers' has-delta filter are client-side
+// over the loaded set only, so the header says when that set is capped and
+// shows the server-side total (F-45). Real pagination lands in Phase 4.
 
 import { useMemo, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -19,7 +20,7 @@ import {
   useReactTable,
   type SortingState,
 } from '@tanstack/react-table';
-import { useSnapshotQuery, useWorkspace } from '../lib/hooks';
+import { useServerCount, useSnapshotQuery, useWorkspace } from '../lib/hooks';
 import {
   productsBySource,
   recentProducts,
@@ -29,6 +30,7 @@ import {
 import type { Product } from '../lib/types';
 import PageHeader from '../components/PageHeader';
 import EmptyState from '../components/EmptyState';
+import ErrorState from '../components/ErrorState';
 import Skeleton from '../components/Skeleton';
 import Button from '../components/Button';
 import HistoryDrawer from '../features/drawer/HistoryDrawer';
@@ -38,12 +40,29 @@ import BoardToolbar, {
   type BoardView,
 } from '../features/board/BoardToolbar';
 import BoardTable from '../features/board/BoardTable';
-import { boardColumns } from '../features/board/columns';
+import { boardColumns, dataColumnVisibility } from '../features/board/columns';
 import '../features/board/board.css';
 
-function countLabel(visible: number, total: number): string {
-  const noun = total === 1 ? 'product' : 'products';
-  return visible === total ? `${total} ${noun}` : `${visible} of ${total} ${noun}`;
+const LIMITS = { movers: 100, source: 500, recent: 300 } as const;
+
+const fmt = (n: number) => n.toLocaleString('en-US');
+
+/** Header count. Never presents a capped window as the whole workspace. */
+function countLabel(
+  visible: number,
+  loaded: number,
+  capped: boolean,
+  total: number | null,
+): string {
+  const noun = loaded === 1 ? 'product' : 'products';
+  if (!capped || (total !== null && total <= loaded)) {
+    return visible === loaded ? `${fmt(loaded)} ${noun}` : `${fmt(visible)} of ${fmt(loaded)} ${noun}`;
+  }
+  const span =
+    total !== null
+      ? `first ${fmt(loaded)} of ${fmt(total)} ${noun}`
+      : `first ${fmt(loaded)} ${noun}, more not loaded`;
+  return visible === loaded ? `Showing the ${span}` : `${fmt(visible)} matches in the ${span}`;
 }
 
 export default function Products() {
@@ -59,15 +78,30 @@ export default function Products() {
   const [search, setSearch] = useState('');
   const [sorting, setSorting] = useState<SortingState>([]);
 
+  const limit =
+    view === 'movers' ? LIMITS.movers : sourceId ? LIMITS.source : LIMITS.recent;
+
   const products = useSnapshotQuery<Product>(
     () => {
       if (!wid) return null;
-      if (view === 'movers') return topMovers(wid, 100);
-      if (sourceId) return productsBySource(wid, sourceId, 500);
-      return recentProducts(wid, 300);
+      if (view === 'movers') return topMovers(wid, limit);
+      if (sourceId) return productsBySource(wid, sourceId, limit);
+      return recentProducts(wid, limit);
     },
     [wid, view, sourceId],
     view === 'movers' ? 'board:movers' : sourceId ? 'board:by-source' : 'board:recent',
+  );
+
+  // Only ask the server for a total once the window is actually full.
+  const capped = products.data.length >= limit;
+  const total = useServerCount(
+    () => {
+      if (!wid || !capped) return null;
+      if (view === 'movers') return topMovers(wid, null);
+      if (sourceId) return productsBySource(wid, sourceId, null);
+      return recentProducts(wid, null);
+    },
+    [wid, view, sourceId, capped],
   );
 
   const sourcesState = useSnapshotQuery(
@@ -98,10 +132,12 @@ export default function Products() {
     );
   }, [scopedRows, query]);
 
+  const columnVisibility = useMemo(() => dataColumnVisibility(products.data), [products.data]);
+
   const table = useReactTable({
     data: rows,
     columns: boardColumns,
-    state: { sorting },
+    state: { sorting, columnVisibility },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -145,8 +181,12 @@ export default function Products() {
   const subtitle = loading
     ? 'Loading the board…'
     : [
-        countLabel(rows.length, scopedRows.length),
-        view === 'movers' ? 'biggest price drops first' : 'latest observations',
+        countLabel(rows.length, scopedRows.length, capped && !(view === 'movers' && sourceId), total),
+        view === 'movers'
+          ? sourceId
+            ? `biggest drops within the global top ${limit}`
+            : 'biggest price drops first'
+          : 'latest observations',
         sourceName ? `source: ${sourceName}` : null,
       ]
         .filter(Boolean)
@@ -163,10 +203,7 @@ export default function Products() {
     );
   } else if (products.error) {
     body = (
-      <EmptyState
-        title="Couldn't load the board"
-        body="The products listener failed — check your connection and reload."
-      />
+      <ErrorState title="Couldn't load the board" error={products.error} />
     );
   } else if (scopedRows.length === 0) {
     if (view === 'movers') {

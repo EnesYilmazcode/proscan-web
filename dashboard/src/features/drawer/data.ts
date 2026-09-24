@@ -67,7 +67,8 @@ export function useLatestOfferSnapshot(
       .then((snap) => {
         if (!cancelled) setState({ data: snap, loading: false });
       })
-      .catch(() => {
+      .catch((err: unknown) => {
+        console.error('[proscan] offer snapshot read failed', err);
         if (!cancelled) setState({ data: null, loading: false });
       });
     return () => {

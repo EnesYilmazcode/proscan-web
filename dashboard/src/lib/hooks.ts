@@ -18,6 +18,7 @@ import {
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import {
   doc,
+  getCountFromServer,
   getDoc,
   onSnapshot,
   type DocumentReference,
@@ -142,9 +143,7 @@ export function useSnapshotQuery<T>(
           firstSnapshot = false;
           scanEnd(token);
         }
-        if (import.meta.env.DEV) {
-          console.debug(`[proscan:reads] ${debugLabel ?? 'query'} error`, error);
-        }
+        console.error(`[proscan] ${debugLabel ?? 'query'} listener failed`, error);
         setState({ data: [], loading: false, error });
       },
     );
@@ -156,6 +155,35 @@ export function useSnapshotQuery<T>(
   }, deps);
 
   return state;
+}
+
+/* ── server-side count (aggregate, no documents read) ───────────────── */
+
+/** getCountFromServer for a query. `null` while unknown or when the count
+ *  failed; callers fall back to "showing first N". Re-runs on dep change. */
+export function useServerCount(
+  queryFactory: () => Query<unknown> | null,
+  deps: DependencyList,
+): number | null {
+  const [count, setCount] = useState<number | null>(null);
+  useEffect(() => {
+    const q = queryFactory();
+    setCount(null);
+    if (!q) return;
+    let cancelled = false;
+    getCountFromServer(q)
+      .then((snap) => {
+        if (!cancelled) setCount(snap.data().count);
+      })
+      .catch((error: unknown) => {
+        console.error('[proscan] count query failed', error);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+  return count;
 }
 
 /* ── one-shot doc read (history / snapshots — NEVER listeners) ──────── */
@@ -196,6 +224,7 @@ export function useDocOnce<T>(ref: DocumentReference<T> | null): DocOnceState<T>
         });
       })
       .catch((error: Error) => {
+        console.error(`[proscan] read ${ref.path} failed`, error);
         if (!cancelled) setState({ data: null, loading: false, error });
       });
     return () => {
@@ -214,12 +243,14 @@ export interface WorkspaceState {
   wid: string | null;
   workspace: Workspace | null;
   loading: boolean;
+  error: Error | null;
 }
 
 const WorkspaceContext = createContext<WorkspaceState>({
   wid: null,
   workspace: null,
   loading: false,
+  error: null,
 });
 
 /** Mounted ONCE by AuthGate after sign-in: owns the single doc listener on
@@ -236,10 +267,11 @@ export function WorkspaceProvider({
     wid: uid,
     workspace: null,
     loading: true,
+    error: null,
   });
 
   useEffect(() => {
-    setState({ wid: uid, workspace: null, loading: true });
+    setState({ wid: uid, workspace: null, loading: true, error: null });
     const unsubscribe = onSnapshot(
       doc(db, 'workspaces', uid),
       (snap) => {
@@ -247,9 +279,13 @@ export function WorkspaceProvider({
           wid: uid,
           workspace: snap.exists() ? (snap.data() as Workspace) : null,
           loading: false,
+          error: null,
         });
       },
-      () => setState({ wid: uid, workspace: null, loading: false }),
+      (error) => {
+        console.error('[proscan] workspace listener failed', error);
+        setState({ wid: uid, workspace: null, loading: false, error });
+      },
     );
     return unsubscribe;
   }, [uid]);

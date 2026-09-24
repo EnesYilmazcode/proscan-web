@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import Button from '../../components/Button';
 import type { Product } from '../../lib/types';
 import { exportProductsXlsx } from './exportXlsx';
+import { reportError } from '../../lib/errors';
 import './export.css';
 
 export interface ExportButtonProps {
@@ -47,7 +48,7 @@ export default function ExportButton({ rows, disabled }: ExportButtonProps) {
         setPhase('idle');
       }, CONFIRM_MS);
     } catch (err) {
-      console.error('[proscan] XLSX export failed', err);
+      reportError('export XLSX', err);
       if (mountedRef.current) setPhase('idle');
     }
   };

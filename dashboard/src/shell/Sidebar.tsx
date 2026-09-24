@@ -75,6 +75,12 @@ export default function Sidebar() {
         >
           Sign out
         </button>
+        <span
+          className="sidebar__build mono"
+          title={`Commit ${__PROSCAN_BUILD__.sha}, built ${__PROSCAN_BUILD__.builtAt}`}
+        >
+          build {__PROSCAN_BUILD__.short}
+        </span>
       </div>
     </aside>
   );
