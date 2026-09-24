@@ -15,10 +15,11 @@ import {
   writeBatch,
   Timestamp,
   arrayUnion,
+  deleteField,
   FieldPath,
 } from 'firebase/firestore';
 
-const FIRESTORE = { doc, getDoc, writeBatch, Timestamp, arrayUnion, FieldPath };
+const FIRESTORE = { doc, getDoc, writeBatch, Timestamp, arrayUnion, deleteField, FieldPath };
 const quiet = { log() {}, warn() {}, error() {} };
 
 /** Loads the engine, db, sync and schema modules from an extension checkout. */

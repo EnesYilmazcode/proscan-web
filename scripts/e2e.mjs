@@ -292,8 +292,7 @@ async function main() {
     console.log('[board] one source: deltas against its previous run');
     await page.selectOption('.board-select', 's_A3K9XELT4QZ6M2');
     sub = await waitSubtitle(page, /deltas against the run of/);
-    // The 50 ASINs the keyword run also saw lose the storefront from sourceIds.
-    knownFailure('NEW-SYNC-1 (F-20 area): storefront scope counts all its products', sub.includes(`200 of ${fmt(STORE_N)} products loaded`), sub);
+    check('storefront scope counts all its products', sub.includes(`200 of ${fmt(STORE_N)} products loaded`), sub);
     await checkColumns(page, 'storefront', { deltas: 0.5 });
     await page.screenshot({ path: resolve(SHOTS, 'board-storefront.png') });
 
