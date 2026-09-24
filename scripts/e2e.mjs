@@ -127,7 +127,8 @@ async function preview() {
   const child = spawn(
     'npx',
     ['vite', 'preview', '--config', 'vite.dashboard.config.ts', '--outDir', OUT_DIR, '--port', String(PREVIEW_PORT), '--strictPort'],
-    { cwd: WEB_ROOT, shell: true, stdio: 'ignore' },
+    // Its own process group off Windows, so kill() takes vite down with npx.
+    { cwd: WEB_ROOT, shell: true, stdio: 'ignore', detached: process.platform !== 'win32' },
   );
   for (let i = 0; i < 60; i++) {
     try {
@@ -145,7 +146,13 @@ async function preview() {
 function kill(child) {
   if (!child || child.exitCode !== null) return;
   if (process.platform === 'win32') spawnSync('taskkill', ['/PID', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
-  else child.kill('SIGTERM');
+  else {
+    try {
+      process.kill(-child.pid, 'SIGTERM');
+    } catch {
+      child.kill('SIGTERM');
+    }
+  }
 }
 
 /* ── the browser ─────────────────────────────────────────────────── */
