@@ -15,13 +15,15 @@ const check = (name, ok, detail = '') => {
   console.log(`  ${ok ? 'PASS' : 'FAIL'} ${name}${ok || !detail ? '' : ` (${detail})`}`);
 };
 
-const src = readFileSync(ours, 'utf8');
+// Line endings are ignored: autocrlf checks files out with CRLF on Windows.
+const lf = (text) => text.replace(/\r\n/g, '\n');
+const src = lf(readFileSync(ours, 'utf8'));
 const exported = [...src.matchAll(/^export (?:const|function) (\w+)/gm)].map((m) => m[1]);
 const missing = exported.filter((name) => !new RegExp(`declare (?:const|function) ${name}\\b`).test(types));
 check('index.d.ts declares every export', missing.length === 0, missing.join(', '));
 
 const ext = requireExtension('the schema check');
-const theirs = readFileSync(resolve(ext, 'packages', 'schema', 'index.js'), 'utf8');
+const theirs = lf(readFileSync(resolve(ext, 'packages', 'schema', 'index.js'), 'utf8'));
 check(`index.js matches ${ext}`, theirs === src, 'copy the extension file over ours');
 
 console.log(failed === 0 ? 'RESULT: PASS' : `RESULT: FAIL (${failed})`);
