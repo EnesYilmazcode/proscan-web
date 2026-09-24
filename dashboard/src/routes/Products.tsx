@@ -40,7 +40,7 @@ import BoardToolbar, {
   type BoardView,
 } from '../features/board/BoardToolbar';
 import BoardTable from '../features/board/BoardTable';
-import { boardColumns } from '../features/board/columns';
+import { boardColumns, dataColumnVisibility } from '../features/board/columns';
 import '../features/board/board.css';
 
 const LIMITS = { movers: 100, source: 500, recent: 300 } as const;
@@ -132,10 +132,12 @@ export default function Products() {
     );
   }, [scopedRows, query]);
 
+  const columnVisibility = useMemo(() => dataColumnVisibility(products.data), [products.data]);
+
   const table = useReactTable({
     data: rows,
     columns: boardColumns,
-    state: { sorting },
+    state: { sorting, columnVisibility },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),

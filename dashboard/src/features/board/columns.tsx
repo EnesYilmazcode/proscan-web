@@ -227,6 +227,17 @@ function TagsCell({ p }: { p: Product }) {
 
 /* ── column definitions ─────────────────────────────────────────── */
 
+// Nothing writes rank, spread or scores yet (F-25): the extension's sync
+// only sends price, rating and reviews. These columns stay hidden until a
+// loaded row carries the field. Phase 5 (offers and spread) fills them.
+export function dataColumnVisibility(rows: Product[]): Record<string, boolean> {
+  return {
+    rank: rows.some((p) => p.latest?.rk !== undefined),
+    spread: rows.some((p) => p.spread !== undefined),
+    maxBuy: rows.some((p) => p.scores?.maxBuy !== undefined),
+  };
+}
+
 /** Client-side sortable columns over the loaded set. `sortUndefined: 'last'`
  *  keeps absent values (no delta / spread / scores) at the bottom. */
 export const boardColumns: ColumnDef<Product>[] = [

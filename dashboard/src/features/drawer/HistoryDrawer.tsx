@@ -195,9 +195,10 @@ export default function HistoryDrawer({ wid, asin, onClose }: HistoryDrawerProps
             </div>
           </section>
 
-          {/* 2 · THE VERDICT BLOCK (signature) */}
-          <section className="hd-section">
-            {typeof maxBuy === 'number' && typeof spread?.md === 'number' ? (
+          {/* 2 · THE VERDICT BLOCK (signature). Hidden without spread data,
+              which nothing writes until Phase 5 (F-25). */}
+          {typeof maxBuy === 'number' && typeof spread?.md === 'number' ? (
+            <section className="hd-section">
               <div className="hd-verdict">
                 <p className="hd-verdict__sentence">
                   Buy below <span className="mono">{money(maxBuy)}</span> to clear{' '}
@@ -208,12 +209,8 @@ export default function HistoryDrawer({ wid, asin, onClose }: HistoryDrawerProps
                   MAX BUY {money(maxBuy)}
                 </span>
               </div>
-            ) : (
-              <div className="hd-verdict hd-verdict--empty">
-                Run a spread analysis in the extension to get a Max Buy price.
-              </div>
-            )}
-          </section>
+            </section>
+          ) : null}
 
           {/* 3 · price history */}
           <section className="hd-section">
