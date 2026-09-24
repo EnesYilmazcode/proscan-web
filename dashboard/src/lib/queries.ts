@@ -23,6 +23,12 @@ import {
   type Query,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import {
+  historyConverter,
+  productConverter,
+  runConverter,
+  sourceConverter,
+} from './checked';
 import type {
   HistoryDoc,
   LeadStage,
@@ -34,20 +40,13 @@ import type {
   Source,
 } from './types';
 
-/* ── converters (id-stamping, cast-only — schema lives in types.ts) ─── */
+/* ── converters: checked against the shared schema (lib/checked.ts) ─── */
 
-function converter<T extends DocumentData>(): FirestoreDataConverter<T> {
-  return {
-    toFirestore: (data) => data as DocumentData,
-    fromFirestore: (snap) => snap.data() as T,
-  };
-}
-
-const productConverter = converter<Product>();
-const runConverter = converter<Run>();
-const sourceConverter = converter<Source>();
-const historyConverter = converter<HistoryDoc>();
-const snapshotConverter = converter<OfferSnapshot>();
+// Offer snapshots are Phase 5 and not in the schema yet.
+const snapshotConverter: FirestoreDataConverter<OfferSnapshot> = {
+  toFirestore: (data) => data as DocumentData,
+  fromFirestore: (snap) => snap.data() as OfferSnapshot,
+};
 
 function productsCol(wid: string) {
   return collection(db, 'workspaces', wid, 'products').withConverter(

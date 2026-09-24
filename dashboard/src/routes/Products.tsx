@@ -31,6 +31,7 @@ import type { Product } from '../lib/types';
 import PageHeader from '../components/PageHeader';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
+import SchemaNotice from '../components/SchemaNotice';
 import Skeleton from '../components/Skeleton';
 import Button from '../components/Button';
 import HistoryDrawer from '../features/drawer/HistoryDrawer';
@@ -277,6 +278,7 @@ export default function Products() {
           />
         }
       />
+      <SchemaNotice invalid={[...products.invalid, ...sourcesState.invalid]} />
       {body}
       {asin && wid ? (
         <HistoryDrawer wid={wid} asin={asin} onClose={closeDrawer} />

@@ -9,21 +9,12 @@
 // NEVER listeners on history / snapshots.
 
 import { useEffect, useMemo, useState } from 'react';
-import {
-  doc,
-  setDoc,
-  type DocumentData,
-  type FirestoreDataConverter,
-} from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { productConverter } from '../../lib/checked';
 import { useDocOnce, type DocOnceState } from '../../lib/hooks';
 import { latestOfferSnapshot } from '../../lib/queries';
 import type { OfferSnapshot, Product, ProductLead } from '../../lib/types';
-
-const productConverter: FirestoreDataConverter<Product> = {
-  toFirestore: (data) => data as DocumentData,
-  fromFirestore: (snap) => snap.data() as Product,
-};
 
 /** One-shot read of workspaces/{wid}/products/{asin}. Re-fetches only when
  *  the doc path changes (useDocOnce keys on path). */

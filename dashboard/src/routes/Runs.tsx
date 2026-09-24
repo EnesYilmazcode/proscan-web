@@ -12,6 +12,7 @@ import type { Source } from '../lib/types';
 import PageHeader from '../components/PageHeader';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
+import SchemaNotice from '../components/SchemaNotice';
 import Button from '../components/Button';
 import { CWS_URL } from '../auth/SignIn';
 import RunCard, { RunCardSkeleton } from '../features/runs/RunCard';
@@ -97,6 +98,7 @@ export default function Runs() {
         title="Runs"
         subtitle="Your 30 most recent scrape runs — click one to open its products."
       />
+      <SchemaNotice invalid={[...runsState.invalid, ...sourcesState.invalid]} />
       {body}
     </>
   );
