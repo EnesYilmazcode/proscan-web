@@ -124,6 +124,9 @@ function build() {
 }
 
 async function preview() {
+  // A server left over from an earlier run would stand in for this build.
+  const taken = await fetch(BASE).then(() => true, () => false);
+  if (taken) throw new Error(`port ${PREVIEW_PORT} already answers; stop that server or set E2E_PREVIEW_PORT`);
   const child = spawn(
     'npx',
     ['vite', 'preview', '--config', 'vite.dashboard.config.ts', '--outDir', OUT_DIR, '--port', String(PREVIEW_PORT), '--strictPort'],
@@ -131,6 +134,7 @@ async function preview() {
     { cwd: WEB_ROOT, shell: true, stdio: 'ignore', detached: process.platform !== 'win32' },
   );
   for (let i = 0; i < 60; i++) {
+    if (child.exitCode !== null) throw new Error(`vite preview exited with ${child.exitCode}`);
     try {
       const res = await fetch(BASE);
       if (res.ok) return child;
@@ -163,6 +167,11 @@ async function newPage(browser, consoleErrors) {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 1400 }, acceptDownloads: true });
   await ctx.route(/^https?:\/\/([^/]*\.)?(amazon\.com|media-amazon\.com)\//, (route) =>
     route.fulfill({ status: 200, contentType: 'image/png', body: PNG }),
+  );
+  // Hosting serves public/ at the root, which vite preview of the dashboard
+  // alone does not; without this the favicon 404s into the console check.
+  await ctx.route(`http://localhost:${PREVIEW_PORT}/icon128.png`, (route) =>
+    route.fulfill({ status: 200, contentType: 'image/png', path: resolve(WEB_ROOT, 'public', 'icon128.png') }),
   );
   const page = await ctx.newPage();
   page.on('console', (msg) => {
@@ -238,9 +247,10 @@ async function main() {
   console.log('[build] production bundle against the emulators');
   build();
   const server = await preview();
-  const browser = await chromium.launch({ executablePath: process.env.QA_CHROMIUM || undefined });
   const consoleErrors = [];
+  let browser;
   try {
+    browser = await chromium.launch({ executablePath: process.env.QA_CHROMIUM || undefined });
     const { ctx, page } = await newPage(browser, consoleErrors);
 
     console.log('[board] all sources, latest');
@@ -324,7 +334,7 @@ async function main() {
     // the dashboard falls back to updatePassword; nothing else may log.
     consoleErrors.push(...googleErrors.filter((t) => !/status of 400/.test(t)));
   } finally {
-    await browser.close().catch(() => {});
+    await browser?.close().catch(() => {});
     kill(server);
   }
 
