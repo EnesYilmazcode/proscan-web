@@ -1,4 +1,9 @@
 rules_version = '2';
+
+// Checked against the shared schema (packages/schema/index.js, SV 1).
+// The extension writes sources, runs, pages, products and history; the
+// dashboard writes users, workspaces, leads, tags, events and the watchlist
+// fields on sources. Every document lists the keys it may carry.
 service cloud.firestore {
   match /databases/{db}/documents {
     function signedIn() { return request.auth != null; }
@@ -7,77 +12,260 @@ service cloud.firestore {
       // Later (VA Seats): || request.auth.uid in get(/databases/$(db)/documents/workspaces/$(wid)).data.members
     }
 
+    function nat(v) { return v is int && v >= 0; }
+    function str(v, max) { return v is string && v.size() <= max; }
+    function strOrNull(v, max) { return v == null || str(v, max); }
+    function asinOk(a) { return a is string && a.matches('^[A-Z0-9]{10}$'); }
+    function dayKeyOk(k) { return k is string && k.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'); }
+    function sourceIdOk(id) { return id is string && id.matches('^[sk]_[A-Za-z0-9_-]{1,200}$'); }
+
+    // Scan times come from the scanning machine's clock. An hour of slack
+    // lets a fast clock sync while still refusing a 2099 pin to the top.
+    function past(t) { return t is timestamp && t <= request.time + duration.value(1, 'h'); }
+
+    // Set when the document is created, never changed after.
+    function createOnly(field) {
+      return resource == null
+        || request.resource.data.get(field, null) == resource.data.get(field, null);
+    }
+
+    // A compact point (schema Point). `extra` names the provenance keys a
+    // point may also carry where it is stored.
+    function pointOk(pt, extra) {
+      return pt is map
+        && pt.keys().hasOnly(['p', 'r', 'v', 'pr', 'rk'].concat(extra))
+        && (!('p' in pt) || nat(pt.p))
+        && (!('r' in pt) || (pt.r is number && pt.r >= 0 && pt.r <= 5))
+        && (!('v' in pt) || nat(pt.v))
+        && (!('pr' in pt) || pt.pr in [0, 1])
+        && (!('rk' in pt) || (pt.rk is int && pt.rk > 0));
+    }
+
+    function deltaOk(d) {
+      return d is map
+        && d.keys().hasOnly(['p', 'pPct', 'r', 'v', 'days'])
+        && (!('p' in d) || d.p is int)
+        && (!('pPct' in d) || d.pPct is number)
+        && (!('r' in d) || d.r is number)
+        && (!('v' in d) || d.v is int)
+        && (!('days' in d) || nat(d.days));
+    }
+
     match /users/{uid} {
-      allow read, write: if signedIn() && request.auth.uid == uid;
+      allow read, delete: if signedIn() && request.auth.uid == uid;
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['displayName', 'email', 'defaultWorkspace', 'createdAt'])
+        && strOrNull(request.resource.data.get('displayName', null), 200)
+        && strOrNull(request.resource.data.get('email', null), 320)
+        && request.resource.data.get('defaultWorkspace', uid) == uid
+        && (resource != null || request.resource.data.get('createdAt', request.time) == request.time)
+        && createOnly('createdAt');
     }
 
     match /workspaces/{wid} {
-      allow read: if member(wid);
-      allow create: if member(wid)
-        && request.resource.data.ownerUid == request.auth.uid
-        && request.resource.data.get('plan', 'free') == 'free';
-      allow update: if member(wid)
-        && request.resource.data.ownerUid == resource.data.ownerUid
-        && request.resource.data.get('plan', 'free') == resource.data.get('plan', 'free');
-      allow delete: if false;
+      function workspaceOk() {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['ownerUid', 'name', 'plan', 'settings', 'tagMeta', 'lastReviewedAt', 'createdAt'])
+          && d.ownerUid == wid
+          && strOrNull(d.get('name', null), 120)
+          && d.get('settings', {}) is map
+          && d.get('tagMeta', {}) is map
+          && (!('lastReviewedAt' in d) || past(d.lastReviewedAt));
+      }
+
+      allow read, delete: if member(wid);
+      allow create: if member(wid) && workspaceOk()
+        && request.resource.data.get('plan', 'free') == 'free'
+        && request.resource.data.get('createdAt', request.time) == request.time;
+      allow update: if member(wid) && workspaceOk()
+        && request.resource.data.get('plan', null) == resource.data.get('plan', null)
+        && createOnly('createdAt');
 
       match /sources/{sourceId} {
+        function sourceOk() {
+          let d = request.resource.data;
+          return d.keys().hasOnly([
+              'sv', 'sourceId', 'type', 'sellerId', 'keyword', 'url', 'lastRunId', 'lastScrapedAt', 'catalogSize',
+              'nickname', 'watched', 'cadenceDays', 'tags', 'notes', 'createdAt'])
+            && sourceIdOk(sourceId)
+            && d.get('sv', 1) == 1
+            && d.get('sourceId', sourceId) == sourceId
+            && d.type in ['storefront', 'keyword']
+            && strOrNull(d.get('sellerId', null), 40)
+            && strOrNull(d.get('keyword', null), 300)
+            && strOrNull(d.get('url', null), 2000)
+            && (!('lastRunId' in d) || str(d.lastRunId, 260))
+            && (!('lastScrapedAt' in d) || past(d.lastScrapedAt))
+            && (!('catalogSize' in d) || nat(d.catalogSize))
+            && strOrNull(d.get('nickname', null), 120)
+            && d.get('watched', false) is bool
+            && (!('cadenceDays' in d) || (d.cadenceDays is int && d.cadenceDays >= 1 && d.cadenceDays <= 365))
+            && (!('tags' in d) || (d.tags is list && d.tags.size() <= 30))
+            && strOrNull(d.get('notes', null), 5000)
+            && createOnly('createdAt');
+        }
+
         allow read, delete: if member(wid);
-        allow create, update: if member(wid)
-          && request.resource.data.type in ['storefront', 'keyword']
-          && request.resource.data.get('cadenceDays', 7) is int;
+        allow create, update: if member(wid) && sourceOk();
       }
 
       match /runs/{runId} {
+        function runOk() {
+          let d = request.resource.data;
+          let c = d.counters;
+          return d.keys().hasOnly([
+              'sv', 'runId', 'sourceId', 'source', 'mk', 'dayKey', 'startedAt', 'finishedAt', 'status', 'reason',
+              'pagesDone', 'maxPages', 'pagesPlanned', 'totalResultsOnSerp', 'counters', 'label'])
+            && d.sv == 1
+            && sourceIdOk(d.sourceId)
+            && d.runId == runId
+            && d.startedAt is timestamp
+            && runId == d.sourceId + '_' + string(d.startedAt.toMillis())
+            && past(d.startedAt)
+            && d.source is map
+            && d.source.keys().hasOnly(['type', 'sellerId', 'keyword', 'url'])
+            && d.source.type in ['storefront', 'keyword']
+            && d.mk == 'US'
+            && dayKeyOk(d.dayKey)
+            && d.status in ['active', 'complete', 'stopped', 'dead']
+            && (d.finishedAt == null || (past(d.finishedAt) && d.finishedAt >= d.startedAt))
+            && (d.status != 'active' || d.finishedAt == null)
+            && strOrNull(d.reason, 100)
+            && nat(d.pagesDone)
+            && d.maxPages is int && d.maxPages >= 1 && d.maxPages <= 1000
+            && (d.pagesPlanned == null || nat(d.pagesPlanned))
+            && (d.totalResultsOnSerp == null || nat(d.totalResultsOnSerp))
+            && c is map
+            && c.keys().hasOnly(['placements', 'uniqueAsins', 'sponsored', 'priceParseFailures', 'newSeen'])
+            && nat(c.placements) && nat(c.uniqueAsins) && nat(c.sponsored)
+            && nat(c.priceParseFailures) && nat(c.newSeen)
+            && strOrNull(d.get('label', null), 120);
+        }
+
         allow read, delete: if member(wid);
-        allow create, update: if member(wid)
-          && request.resource.data.status in ['active', 'complete', 'stopped', 'dead']
-          && request.resource.data.dayKey is string
-          && request.resource.data.sourceId is string;
+        allow create, update: if member(wid) && runOk();
 
         match /pages/{pageId} {
+          function pageOk() {
+            let d = request.resource.data;
+            return d.keys().hasOnly([
+                'sv', 'runId', 'page', 'scrapedAt', 'expireAt', 'count', 'placements', 'kind', 'items', 'total', 'truncated'])
+              && d.sv == 1
+              && d.runId == runId
+              && d.page is int && d.page >= 1 && d.page <= 1000
+              && pageId.matches('^p[0-9]{4,}$')
+              && int(pageId[1:pageId.size()]) == d.page
+              && past(d.scrapedAt)
+              // TTL field: 400 days after the run started, so never further out than that.
+              && d.expireAt is timestamp
+              && d.expireAt <= request.time + duration.value(401, 'd')
+              && nat(d.count)
+              && nat(d.placements)
+              && str(d.kind, 20)
+              // Items can't be looped over here; the extension validates each.
+              && d.items is map
+              && d.items.size() <= 120
+              && (!('total' in d) || nat(d.total))
+              && (!('truncated' in d) || d.truncated is bool);
+          }
+
           allow read, delete: if member(wid);
-          allow create, update: if member(wid)
-            && request.resource.data.items is map
-            && request.resource.data.items.size() <= 120     // Amazon pages carry ≤60 placements; 2× headroom
-            && request.resource.data.expireAt is timestamp;  // TTL field is mandatory on cold docs
+          allow create, update: if member(wid) && pageOk();
         }
       }
 
       match /products/{asin} {
+        function leadOk(lead) {
+          return lead is map
+            && lead.keys().hasOnly([
+                'stage', 'stageChangedAt', 'rejectedReason', 'notes', 'buyPrice', 'qty', 'supplier', 'orderRef', 'recheckAt'])
+            // A lead with no stored stage is 'new' (the drawer never writes it).
+            && lead.get('stage', 'new') in ['new', 'reviewing', 'approved', 'purchased', 'rejected', 'archived']
+            // A stage move is stamped by the server, not the browser.
+            && (!('stageChangedAt' in lead)
+                || lead.stageChangedAt == request.time
+                || (resource != null
+                    && resource.data.get('lead', {}).get('stageChangedAt', null) == lead.stageChangedAt))
+            && strOrNull(lead.get('rejectedReason', null), 500)
+            && strOrNull(lead.get('notes', null), 5000)
+            && (lead.get('buyPrice', null) == null || nat(lead.buyPrice))
+            && (lead.get('qty', null) == null || nat(lead.qty))
+            && strOrNull(lead.get('supplier', null), 200)
+            && strOrNull(lead.get('orderRef', null), 200)
+            && (lead.get('recheckAt', null) == null || lead.recheckAt is timestamp);
+        }
+
+        function productOk() {
+          let d = request.resource.data;
+          return d.keys().hasOnly([
+              'sv', 'asin', 'mk', 'name', 'url', 'img', 'latest', 'prev', 'delta', 'sourceIds', 'firstSeenAt', 'firstRunId',
+              'lead', 'tags', 'verdict'])
+            && asinOk(asin)
+            && d.asin == asin                                  // doc id == payload ASIN (dedup axis)
+            && d.get('sv', 1) == 1
+            && d.get('mk', 'US') == 'US'
+            && strOrNull(d.get('name', null), 1000)
+            && (!('url' in d) || (str(d.url, 500) && d.url.matches('^https://www[.]amazon[.]com/.*')))
+            && (d.get('img', null) == null || (str(d.img, 1000) && d.img.matches('^https://.*')))
+            && (!('latest' in d) || (
+                  pointOk(d.latest, ['at', 'runId', 'dayKey'])
+                  && past(d.latest.at)
+                  && str(d.latest.runId, 260)
+                  && dayKeyOk(d.latest.dayKey)))
+            && (d.get('prev', null) == null || (
+                  pointOk(d.prev, ['at'])
+                  && (!('at' in d.prev) || past(d.prev.at))))
+            && (d.get('delta', null) == null || deltaOk(d.delta))
+            && (!('sourceIds' in d) || (d.sourceIds is list && d.sourceIds.size() <= 200))
+            && (!('firstSeenAt' in d) || past(d.firstSeenAt))
+            && (!('firstRunId' in d) || str(d.firstRunId, 260))
+            && createOnly('firstSeenAt')
+            && createOnly('firstRunId')
+            && (!('lead' in d) || leadOk(d.lead))
+            && (!('tags' in d) || (d.tags is list && d.tags.size() <= 30))
+            && (!('verdict' in d) || (d.verdict is map && d.verdict.size() <= 8));
+        }
+
         allow read, delete: if member(wid);
-        allow create, update: if member(wid)
-          && request.resource.data.asin == asin              // doc id == payload ASIN (dedup axis)
-          && (!('latest' in request.resource.data) || (
-                request.resource.data.latest.dayKey is string
-                && (!('p' in request.resource.data.latest) || request.resource.data.latest.p is int)
-                && (!('v' in request.resource.data.latest) || request.resource.data.latest.v is int)))
-          // A lead with no stored stage is 'new' (the drawer never writes it).
-          && (!('lead' in request.resource.data)
-              || (request.resource.data.lead is map
-                  && request.resource.data.lead.get('stage', 'new') in
-                     ['new', 'reviewing', 'approved', 'purchased', 'rejected', 'archived']));
+        allow create, update: if member(wid) && productOk();
 
         match /history/{seriesId} {
-          allow read: if member(wid);
-          allow write: if member(wid) && seriesId in ['daily', 'monthly'];
+          allow read, delete: if member(wid);
+          allow create, update: if member(wid)
+            && seriesId in ['daily', 'monthly']
+            && request.resource.data.keys().hasOnly(['sv', 'asin', 'd'])
+            && request.resource.data.sv == 1
+            && request.resource.data.asin == asin
+            && request.resource.data.d is map
+            && request.resource.data.d.size() <= 1500;
         }
         match /offerSnapshots/{snapId} {
           allow read, delete: if member(wid);
           allow create, update: if member(wid)
             && request.resource.data.prices is list
-            && request.resource.data.expireAt is timestamp;
+            && request.resource.data.prices.size() <= 200
+            && request.resource.data.expireAt is timestamp
+            && request.resource.data.expireAt <= request.time + duration.value(401, 'd');
         }
         match /events/{eventId} {
-          allow read, create: if member(wid);
-          allow update, delete: if false;                    // append-only activity trail
+          allow read, delete: if member(wid);
+          // Append-only activity trail, stamped by the server.
+          allow create: if member(wid)
+            && request.resource.data.keys().hasOnly(['type', 'from', 'to', 'at', 'note'])
+            && str(request.resource.data.type, 40)
+            && strOrNull(request.resource.data.get('from', null), 40)
+            && strOrNull(request.resource.data.get('to', null), 40)
+            && strOrNull(request.resource.data.get('note', null), 2000)
+            && request.resource.data.at == request.time;
+          allow update: if false;
         }
       }
 
-      match /sellers/{sellerId} { allow read, write: if member(wid); }
-      match /rules/{ruleSetId}  { allow read, write: if member(wid); }
-      match /views/{viewId}     { allow read, write: if member(wid); }
-      match /alerts/{alertId}   { allow read, write: if member(wid); }
+      // Nothing writes these yet. Owners can read and clear them.
+      match /sellers/{sellerId} { allow read, delete: if member(wid); }
+      match /rules/{ruleSetId}  { allow read, delete: if member(wid); }
+      match /views/{viewId}     { allow read, delete: if member(wid); }
+      match /alerts/{alertId}   { allow read, delete: if member(wid); }
     }
   }
 }
