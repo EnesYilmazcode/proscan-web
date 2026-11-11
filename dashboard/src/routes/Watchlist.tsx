@@ -9,6 +9,7 @@ import { staleness } from '../lib/format';
 import PageHeader from '../components/PageHeader';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
+import SchemaNotice from '../components/SchemaNotice';
 import Skeleton from '../components/Skeleton';
 import Button from '../components/Button';
 import { CWS_URL } from '../auth/SignIn';
@@ -21,7 +22,7 @@ function plural(n: number, word: string): string {
 
 export default function Watchlist() {
   const { wid } = useWorkspace();
-  const { data, loading, error } = useSnapshotQuery(
+  const { data, invalid, loading, error } = useSnapshotQuery(
     () => (wid ? sources(wid) : null),
     [wid],
     'watchlist:sources',
@@ -74,6 +75,7 @@ export default function Watchlist() {
         subtitle="Storefronts and keywords on a rescan cadence — fresh within cadence, due past it, stale past twice it."
         actions={summary ? <span className="wl-summary">{summary}</span> : undefined}
       />
+      <SchemaNotice invalid={invalid} />
       {body}
     </>
   );

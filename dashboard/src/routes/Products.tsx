@@ -2,15 +2,16 @@
 // Excel-killer. URL contract (FROZEN): ?source=<sourceId> scopes the board
 // to one source; ?asin=<asin> opens the HistoryDrawer.
 //
-// Read hygiene (docs/ops/billing-runbook.md): exactly ONE scoped products
-// listener at a time —
-//   movers  -> topMovers(wid, 100)                 (global biggest drops)
-//   source  -> productsBySource(wid, sourceId, 500)
-//   default -> recentProducts(wid, 300)
-// plus the sanctioned tiny sources listener for the scope dropdown.
-// Search, sorting, export and the movers' has-delta filter are client-side
-// over the loaded set only, so the header says when that set is capped and
-// shows the server-side total (F-45). Real pagination lands in Phase 4.
+// Reads (docs/ops/billing-runbook.md):
+//   latest -> productsBySource / recentProducts, 200 at a time: the first
+//             page is live, "Load more" pages on with a cursor (F-45)
+//   total  -> getCountFromServer on the same query, so the header always
+//             says how many there are, not how many are loaded
+//   movers -> each source's latest two runs and their page chunks
+//             (lib/movers.ts): price changes run against run, per source
+// plus the sanctioned tiny sources listener for the scope dropdown. With a
+// source in scope, Latest also shows deltas against that source's previous
+// run. An exact ASIN in the search box is looked up directly.
 
 import { useMemo, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -20,17 +21,23 @@ import {
   useReactTable,
   type SortingState,
 } from '@tanstack/react-table';
-import { useServerCount, useSnapshotQuery, useWorkspace } from '../lib/hooks';
+import { useDocOnce, useServerCount, useSnapshotQuery, useWorkspace } from '../lib/hooks';
+import { fetchAll, pagedTotal, usePagedQuery, PAGE_SIZE } from '../lib/paging';
+import { reportError } from '../lib/errors';
 import {
+  productRef,
   productsBySource,
   recentProducts,
   sources as sourcesQuery,
-  topMovers,
 } from '../lib/queries';
+import { asSeenBy } from '../lib/compare';
+import { MOVERS_SHOWN, moverSources, useMoverRows, useSourceComparisons } from '../lib/movers';
+import { ASIN_RE } from '../../../packages/schema/index.js';
 import type { Product } from '../lib/types';
 import PageHeader from '../components/PageHeader';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
+import SchemaNotice from '../components/SchemaNotice';
 import Skeleton from '../components/Skeleton';
 import Button from '../components/Button';
 import HistoryDrawer from '../features/drawer/HistoryDrawer';
@@ -41,28 +48,26 @@ import BoardToolbar, {
 } from '../features/board/BoardToolbar';
 import BoardTable from '../features/board/BoardTable';
 import { boardColumns, dataColumnVisibility } from '../features/board/columns';
+import { sortRows } from '../features/board/sortRows';
 import '../features/board/board.css';
-
-const LIMITS = { movers: 100, source: 500, recent: 300 } as const;
 
 const fmt = (n: number) => n.toLocaleString('en-US');
 
-/** Header count. Never presents a capped window as the whole workspace. */
-function countLabel(
+/** Header count: how many there are, and how many of them are loaded. */
+export function countLabel(
   visible: number,
   loaded: number,
-  capped: boolean,
   total: number | null,
+  searching: boolean,
 ): string {
-  const noun = loaded === 1 ? 'product' : 'products';
-  if (!capped || (total !== null && total <= loaded)) {
-    return visible === loaded ? `${fmt(loaded)} ${noun}` : `${fmt(visible)} of ${fmt(loaded)} ${noun}`;
+  const noun = (n: number) => (n === 1 ? 'product' : 'products');
+  const all = total !== null && loaded >= total;
+  if (searching) {
+    const scope = all ? fmt(loaded) : `${fmt(loaded)} loaded`;
+    return `${fmt(visible)} ${visible === 1 ? 'match' : 'matches'} in ${scope} ${noun(loaded)}`;
   }
-  const span =
-    total !== null
-      ? `first ${fmt(loaded)} of ${fmt(total)} ${noun}`
-      : `first ${fmt(loaded)} ${noun}, more not loaded`;
-  return visible === loaded ? `Showing the ${span}` : `${fmt(visible)} matches in the ${span}`;
+  if (all || total === null) return `${fmt(total ?? loaded)} ${noun(total ?? loaded)}`;
+  return `${fmt(loaded)} of ${fmt(total)} ${noun(total)} loaded`;
 }
 
 export default function Products() {
@@ -78,31 +83,21 @@ export default function Products() {
   const [search, setSearch] = useState('');
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  const limit =
-    view === 'movers' ? LIMITS.movers : sourceId ? LIMITS.source : LIMITS.recent;
+  const scopeQuery = () => {
+    if (!wid) return null;
+    return sourceId ? productsBySource(wid, sourceId, null) : recentProducts(wid, null);
+  };
 
-  const products = useSnapshotQuery<Product>(
-    () => {
-      if (!wid) return null;
-      if (view === 'movers') return topMovers(wid, limit);
-      if (sourceId) return productsBySource(wid, sourceId, limit);
-      return recentProducts(wid, limit);
-    },
+  const latest = usePagedQuery<Product>(
+    () => (view === 'latest' ? scopeQuery() : null),
     [wid, view, sourceId],
-    view === 'movers' ? 'board:movers' : sourceId ? 'board:by-source' : 'board:recent',
   );
-
-  // Only ask the server for a total once the window is actually full.
-  const capped = products.data.length >= limit;
-  const total = useServerCount(
-    () => {
-      if (!wid || !capped) return null;
-      if (view === 'movers') return topMovers(wid, null);
-      if (sourceId) return productsBySource(wid, sourceId, null);
-      return recentProducts(wid, null);
-    },
-    [wid, view, sourceId, capped],
+  const serverCount = useServerCount(
+    () => (view === 'latest' ? scopeQuery() : null),
+    [wid, view, sourceId],
+    latest.changes,
   );
+  const total = pagedTotal(latest, serverCount);
 
   const sourcesState = useSnapshotQuery(
     () => (wid ? sourcesQuery(wid) : null),
@@ -110,29 +105,64 @@ export default function Products() {
     'board:sources',
   );
 
-  // Movers shows only rows that actually carry a delta; a source scope in
-  // movers view narrows client-side (the movers query is global).
-  const scopedRows = useMemo(() => {
-    if (view !== 'movers') return products.data;
-    let list = products.data.filter(
-      (p) => p.delta?.pPct !== undefined || p.delta?.p !== undefined,
-    );
-    if (sourceId) list = list.filter((p) => p.sourceIds?.includes(sourceId));
-    return list;
-  }, [products.data, view, sourceId]);
+  // Which sources to compare run against run: the one in scope, or for
+  // Movers across all sources the most recently scanned ones.
+  const compareIds = useMemo(() => {
+    if (view === 'movers') {
+      if (!sourceId && sourcesState.loading) return null;
+      return moverSources(sourceId, sourcesState.data);
+    }
+    return sourceId ? [sourceId] : null;
+  }, [view, sourceId, sourcesState.loading, sourcesState.data]);
+  const comparisons = useSourceComparisons(wid, compareIds);
+  const movers = useMoverRows(view === 'movers' ? wid : null, comparisons);
 
-  // Search-in-loaded-set: name or ASIN, case-insensitive.
+  // In a source's scope, Latest shows each product as that source's last
+  // run saw it, with the delta against the run before.
+  const overlay = view === 'latest' && sourceId ? comparisons.data[0] : undefined;
+  const latestRows = useMemo(() => {
+    if (!overlay) return latest.data;
+    return latest.data.map((p) => {
+      const cmp = overlay.byAsin.get(p.asin);
+      return cmp ? asSeenBy(p, cmp, overlay.latest) : p;
+    });
+  }, [latest.data, overlay]);
+
+  const scopedRows = view === 'movers' ? movers.data.rows : latestRows;
+  const loaded = scopedRows;
+  const state =
+    view === 'movers'
+      ? movers
+      : {
+          ...latest,
+          loading: latest.loading || (sourceId !== null && comparisons.loading),
+          error: latest.error ?? comparisons.error,
+          invalid: [...latest.invalid, ...comparisons.invalid],
+        };
+
+  // An exact ASIN is read directly, so search reaches past the loaded pages.
   const query = search.trim().toLowerCase();
+  const exactAsin = ASIN_RE.test(search.trim().toUpperCase()) ? search.trim().toUpperCase() : null;
+  const exactRef = useMemo(
+    () => (wid && exactAsin ? productRef(wid, exactAsin) : null),
+    [wid, exactAsin],
+  );
+  const exact = useDocOnce(exactRef);
+
   const rows = useMemo(() => {
     if (!query) return scopedRows;
-    return scopedRows.filter(
+    const hits = scopedRows.filter(
       (p) =>
         p.asin.toLowerCase().includes(query) ||
         (p.name ?? '').toLowerCase().includes(query),
     );
-  }, [scopedRows, query]);
+    const found = exact.data;
+    const inScope = found && (!sourceId || found.sourceIds?.includes(sourceId));
+    if (found && inScope && !hits.some((p) => p.asin === found.asin)) return [found, ...hits];
+    return hits;
+  }, [scopedRows, query, exact.data, sourceId]);
 
-  const columnVisibility = useMemo(() => dataColumnVisibility(products.data), [products.data]);
+  const columnVisibility = useMemo(() => dataColumnVisibility(loaded), [loaded]);
 
   const table = useReactTable({
     data: rows,
@@ -144,8 +174,26 @@ export default function Products() {
     getRowId: (p) => p.asin,
   });
 
-  // What the user currently sees, in sorted order — the export contract.
-  const visibleSortedRows = table.getRowModel().rows.map((r) => r.original);
+  // Export writes the whole scope, not the loaded pages: every product,
+  // searched and sorted like the table. Movers are all loaded already.
+  const matches = (p: Product) =>
+    !query || p.asin.toLowerCase().includes(query) || (p.name ?? '').toLowerCase().includes(query);
+  const exportLoad = async (onProgress: (n: number) => void): Promise<Product[]> => {
+    const base = scopeQuery();
+    if (view === 'movers' || !base || !latest.hasMore) return table.getRowModel().rows.map((r) => r.original);
+    const { rows: all, invalid } = await fetchAll(base, onProgress);
+    if (invalid.length > 0) {
+      reportError('export some rows', new Error(`${invalid.length} failed the schema check and were left out`));
+    }
+    const seen = overlay
+      ? all.map((p) => {
+          const cmp = overlay.byAsin.get(p.asin);
+          return cmp ? asSeenBy(p, cmp, overlay.latest) : p;
+        })
+      : all;
+    return sortRows(seen.filter(matches), sorting);
+  };
+  const exportCount = view === 'movers' || !latest.hasMore ? rows.length : query ? null : total;
 
   /* ── URL writers ──────────────────────────────────────────────── */
 
@@ -176,17 +224,29 @@ export default function Products() {
     return s ? sourceLabel(s) : sourceId;
   }, [sourceId, sourcesState.data]);
 
-  const loading = !wid || products.loading;
+  const loading = !wid || state.loading;
+
+  const moversLine = () => {
+    const { found, compared } = movers.data;
+    const n = found > MOVERS_SHOWN ? `top ${fmt(MOVERS_SHOWN)} of ${fmt(found)} movers` : `${fmt(found)} ${found === 1 ? 'mover' : 'movers'}`;
+    const only = compared.length === 1 ? compared[0] : null;
+    if (only) {
+      return only.prev
+        ? `${n} · run of ${only.latest.dayKey} against ${only.prev.dayKey}`
+        : `${n} · only one run so far`;
+    }
+    return `${n} across ${compared.length} ${compared.length === 1 ? 'source' : 'sources'}, each run against the one before`;
+  };
 
   const subtitle = loading
     ? 'Loading the board…'
     : [
-        countLabel(rows.length, scopedRows.length, capped && !(view === 'movers' && sourceId), total),
+        view === 'movers' ? moversLine() : countLabel(rows.length, scopedRows.length, total, query !== ''),
         view === 'movers'
-          ? sourceId
-            ? `biggest drops within the global top ${limit}`
-            : 'biggest price drops first'
-          : 'latest observations',
+          ? 'biggest price drops first'
+          : overlay?.prev
+            ? `deltas against the run of ${overlay.prev.dayKey}`
+            : 'latest observations',
         sourceName ? `source: ${sourceName}` : null,
       ]
         .filter(Boolean)
@@ -201,9 +261,9 @@ export default function Products() {
         <Skeleton variant="table-row" rows={8} />
       </div>
     );
-  } else if (products.error) {
+  } else if (state.error) {
     body = (
-      <ErrorState title="Couldn't load the board" error={products.error} />
+      <ErrorState title="Couldn't load the board" error={state.error} />
     );
   } else if (scopedRows.length === 0) {
     if (view === 'movers') {
@@ -247,7 +307,11 @@ export default function Products() {
     body = (
       <EmptyState
         title="No matches"
-        body={`Nothing in the loaded set matches "${search.trim()}".`}
+        body={
+          latest.hasMore && view === 'latest'
+            ? `Nothing in the ${fmt(scopedRows.length)} loaded products matches "${search.trim()}". Load more, or search an exact ASIN.`
+            : `Nothing matches "${search.trim()}".`
+        }
         cta={
           <Button variant="ghost" onClick={() => setSearch('')}>
             Clear search
@@ -258,6 +322,8 @@ export default function Products() {
   } else {
     body = <BoardTable table={table} onOpen={openDrawer} />;
   }
+
+  const showMore = view === 'latest' && !loading && !state.error && latest.hasMore;
 
   return (
     <>
@@ -273,11 +339,25 @@ export default function Products() {
             sourceId={sourceId}
             sources={sourcesState.data}
             onSourceChange={changeSource}
-            exportRows={visibleSortedRows}
+            exportLoad={exportLoad}
+            exportCount={exportCount}
           />
         }
       />
+      <SchemaNotice invalid={[...state.invalid, ...sourcesState.invalid]} />
       {body}
+      {showMore ? (
+        <div className="board-more">
+          <Button variant="ghost" onClick={latest.loadMore} disabled={latest.loadingMore}>
+            {latest.loadingMore ? 'Loading…' : `Load ${fmt(PAGE_SIZE)} more`}
+          </Button>
+          <span className="board-more__count mono">
+            {total !== null
+              ? `${fmt(latest.data.length)} of ${fmt(total)} loaded`
+              : `${fmt(latest.data.length)} loaded`}
+          </span>
+        </div>
+      ) : null}
       {asin && wid ? (
         <HistoryDrawer wid={wid} asin={asin} onClose={closeDrawer} />
       ) : null}

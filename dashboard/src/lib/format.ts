@@ -2,6 +2,7 @@
 // and timestamps. All money flows through here as integer cents.
 
 import { Timestamp } from 'firebase/firestore';
+import { dayKeyOf } from '../../../packages/schema/index.js';
 import type { Source } from './types';
 
 const MS_PER_DAY = 86_400_000;
@@ -68,9 +69,9 @@ export function relativeTime(at: TimeLike): string {
   return future ? `in ${label}` : `${label} ago`;
 }
 
-/** UTC 'YYYY-MM-DD' for a date (default: now). Matches run/history dayKeys. */
-export function dayKey(date: Date = new Date()): string {
-  return date.toISOString().slice(0, 10);
+/** Local 'YYYY-MM-DD', the way the extension writes run and history dayKeys. */
+export function localDayKey(date: Date = new Date()): string {
+  return dayKeyOf(date.getTime(), date.getTimezoneOffset());
 }
 
 /** 'YYYY-MM-DD' -> Date at UTC midnight. */

@@ -1,10 +1,11 @@
 // Date-bucketing for the Run Inbox: Today / This week / Earlier.
-// Buckets key off the run's UTC dayKey (falling back to startedAt) so the
-// grouping matches the dayKey shown on each card. Input arrives newest-
-// first from runsRecent(); bucketing preserves that order.
+// Buckets key off the run's dayKey, the local date where it ran (falling
+// back to startedAt), so the grouping matches the date on each card.
+// Input arrives newest-first from runsNewestFirst(); bucketing keeps that
+// order.
 
 import type { Run } from '../../lib/types';
-import { dayKey, dayKeyDiff, toMillis } from '../../lib/format';
+import { dayKeyDiff, localDayKey, toMillis } from '../../lib/format';
 
 export type RunGroupKey = 'today' | 'week' | 'earlier';
 
@@ -20,15 +21,15 @@ export interface RunGroup {
   runs: Run[];
 }
 
-/** The run's UTC dayKey, derived from startedAt when absent. */
+/** The run's dayKey, derived from startedAt when absent. */
 function runDayKey(run: Run): string | null {
   if (run.dayKey) return run.dayKey;
   const ms = toMillis(run.startedAt);
-  return ms === null ? null : dayKey(new Date(ms));
+  return ms === null ? null : localDayKey(new Date(ms));
 }
 
-/** today = same UTC day; week = 1–6 days ago; earlier = older / undated. */
-export function groupKeyFor(run: Run, todayKey: string = dayKey()): RunGroupKey {
+/** today = same local day; week = 1–6 days ago; earlier = older / undated. */
+export function groupKeyFor(run: Run, todayKey: string = localDayKey()): RunGroupKey {
   const key = runDayKey(run);
   if (!key) return 'earlier';
   const daysAgo = dayKeyDiff(key, todayKey);
@@ -39,7 +40,7 @@ export function groupKeyFor(run: Run, todayKey: string = dayKey()): RunGroupKey 
 }
 
 /** Bucket runs (already newest-first) into ordered, non-empty groups. */
-export function groupRuns(runs: Run[], todayKey: string = dayKey()): RunGroup[] {
+export function groupRuns(runs: Run[], todayKey: string = localDayKey()): RunGroup[] {
   const buckets: Record<RunGroupKey, Run[]> = { today: [], week: [], earlier: [] };
   for (const run of runs) buckets[groupKeyFor(run, todayKey)].push(run);
   return (['today', 'week', 'earlier'] as const)

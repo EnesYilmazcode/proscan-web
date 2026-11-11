@@ -10,6 +10,7 @@ import {
   createElement,
   useContext,
   useEffect,
+  useRef,
   useState,
   useSyncExternalStore,
   type DependencyList,
@@ -25,6 +26,7 @@ import {
   type Query,
 } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import { problemOf, splitChecked, type SchemaProblem } from './checked';
 import type { Workspace } from './types';
 
 /* ── scan activity signal ─────────────────────────────────────────────
@@ -88,7 +90,10 @@ export function useAuthUser(): AuthState {
 /* ── snapshot query (live, scoped, self-detaching) ──────────────────── */
 
 export interface SnapshotQueryState<T> {
+  /** documents that passed the schema check */
   data: T[];
+  /** documents left out because they failed it */
+  invalid: SchemaProblem[];
   loading: boolean;
   error: Error | null;
 }
@@ -104,6 +109,7 @@ export function useSnapshotQuery<T>(
 ): SnapshotQueryState<T> {
   const [state, setState] = useState<SnapshotQueryState<T>>({
     data: [],
+    invalid: [],
     loading: true,
     error: null,
   });
@@ -111,7 +117,7 @@ export function useSnapshotQuery<T>(
   useEffect(() => {
     const q = queryFactory();
     if (!q) {
-      setState({ data: [], loading: false, error: null });
+      setState({ data: [], invalid: [], loading: false, error: null });
       return;
     }
     setState((s) => ({ ...s, loading: true, error: null }));
@@ -120,7 +126,10 @@ export function useSnapshotQuery<T>(
     let mountReads = 0;
     const unsubscribe = onSnapshot(
       q,
+      { includeMetadataChanges: true },
       (snap) => {
+        // An empty answer from the cache is not "nothing there" (F-48).
+        if (snap.empty && snap.metadata.fromCache) return;
         if (firstSnapshot) {
           firstSnapshot = false;
           scanEnd(token);
@@ -132,11 +141,8 @@ export function useSnapshotQuery<T>(
             `[proscan:reads] ${debugLabel ?? 'query'} +${delta} docs (mount total ${mountReads})`,
           );
         }
-        setState({
-          data: snap.docs.map((d) => d.data()),
-          loading: false,
-          error: null,
-        });
+        const { valid, invalid } = splitChecked(snap.docs.map((d) => d.data() as T & object));
+        setState({ data: valid, invalid, loading: false, error: null });
       },
       (error) => {
         if (firstSnapshot) {
@@ -144,7 +150,7 @@ export function useSnapshotQuery<T>(
           scanEnd(token);
         }
         console.error(`[proscan] ${debugLabel ?? 'query'} listener failed`, error);
-        setState({ data: [], loading: false, error });
+        setState({ data: [], invalid: [], loading: false, error });
       },
     );
     return () => {
@@ -160,29 +166,42 @@ export function useSnapshotQuery<T>(
 /* ── server-side count (aggregate, no documents read) ───────────────── */
 
 /** getCountFromServer for a query. `null` while unknown or when the count
- *  failed; callers fall back to "showing first N". Re-runs on dep change. */
+ *  failed; callers fall back to "showing first N". Resets on dep change.
+ *  A change of `refresh` (say, a live list's snapshot counter) recounts
+ *  after a short pause and keeps the old number until the new one lands. */
 export function useServerCount(
   queryFactory: () => Query<unknown> | null,
   deps: DependencyList,
+  refresh: unknown = 0,
 ): number | null {
   const [count, setCount] = useState<number | null>(null);
+  const fresh = useRef(true);
   useEffect(() => {
-    const q = queryFactory();
+    fresh.current = true;
     setCount(null);
-    if (!q) return;
-    let cancelled = false;
-    getCountFromServer(q)
-      .then((snap) => {
-        if (!cancelled) setCount(snap.data().count);
-      })
-      .catch((error: unknown) => {
-        console.error('[proscan] count query failed', error);
-      });
-    return () => {
-      cancelled = true;
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
+  useEffect(() => {
+    const q = queryFactory();
+    if (!q) return;
+    let cancelled = false;
+    const delay = fresh.current ? 0 : 1000;
+    fresh.current = false;
+    const timer = setTimeout(() => {
+      getCountFromServer(q)
+        .then((snap) => {
+          if (!cancelled) setCount(snap.data().count);
+        })
+        .catch((error: unknown) => {
+          console.error('[proscan] count query failed', error);
+        });
+    }, delay);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [...deps, refresh]);
   return count;
 }
 
@@ -190,6 +209,8 @@ export function useServerCount(
 
 export interface DocOnceState<T> {
   data: T | null;
+  /** set when the document exists but failed the schema check */
+  invalid: SchemaProblem | null;
   loading: boolean;
   error: Error | null;
 }
@@ -199,6 +220,7 @@ export interface DocOnceState<T> {
 export function useDocOnce<T>(ref: DocumentReference<T> | null): DocOnceState<T> {
   const [state, setState] = useState<DocOnceState<T>>({
     data: null,
+    invalid: null,
     loading: ref !== null,
     error: null,
   });
@@ -206,26 +228,25 @@ export function useDocOnce<T>(ref: DocumentReference<T> | null): DocOnceState<T>
 
   useEffect(() => {
     if (!ref) {
-      setState({ data: null, loading: false, error: null });
+      setState({ data: null, invalid: null, loading: false, error: null });
       return;
     }
     let cancelled = false;
-    setState({ data: null, loading: true, error: null });
+    setState({ data: null, invalid: null, loading: true, error: null });
     getDoc(ref)
       .then((snap) => {
         if (cancelled) return;
         if (import.meta.env.DEV) {
           console.debug(`[proscan:reads] doc-once ${snap.ref.path} +1`);
         }
-        setState({
-          data: snap.exists() ? snap.data() : null,
-          loading: false,
-          error: null,
-        });
+        const data = snap.exists() ? snap.data() : null;
+        const invalid = data && typeof data === 'object' ? (problemOf(data) ?? null) : null;
+        if (invalid) console.warn('[proscan] document failed the schema check', invalid);
+        setState({ data: invalid ? null : data, invalid, loading: false, error: null });
       })
       .catch((error: Error) => {
         console.error(`[proscan] read ${ref.path} failed`, error);
-        if (!cancelled) setState({ data: null, loading: false, error });
+        if (!cancelled) setState({ data: null, invalid: null, loading: false, error });
       });
     return () => {
       cancelled = true;

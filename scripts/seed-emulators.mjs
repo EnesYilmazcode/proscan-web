@@ -1,5 +1,10 @@
 // ProScan emulator seed fixtures — see docs/architecture/data-model.md §4.
 //
+// Predates the shared schema (packages/schema): these documents carry no
+// `sv` and include Phase 5 fields, so the dashboard now leaves them out
+// with a schema notice. `npm run seed` writes real extension output.
+// Run this one with `npm run seed:fixture`.
+//
 // SAFETY: this script may only ever talk to the local Firebase Emulator Suite.
 // It defaults the emulator host env vars and hard-fails if either is empty, so
 // writes against production Firestore/Auth are impossible by construction.

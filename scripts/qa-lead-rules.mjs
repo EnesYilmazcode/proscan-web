@@ -13,6 +13,7 @@ import {
   setDoc,
   serverTimestamp,
 } from 'firebase/firestore';
+import { productDoc } from './lib/docs.mjs';
 
 const app = initializeApp({ projectId: 'demo-proscan', apiKey: 'demo-key' }, 'lead-rules');
 const auth = getAuth(app);
@@ -48,13 +49,7 @@ try {
   const product = (asin) => doc(db, 'workspaces', uid, 'products', asin);
 
   // A product as sync.js writes it: no lead map at all.
-  const seed = (asin) =>
-    setDoc(product(asin), {
-      asin,
-      mk: 'US',
-      name: 'QA lead product',
-      latest: { p: 1999, dayKey: '2026-09-01' },
-    });
+  const seed = (asin) => setDoc(product(asin), productDoc(asin));
 
   console.log('[lead] notes on an untriaged product');
   await seed('B0QALEAD01');

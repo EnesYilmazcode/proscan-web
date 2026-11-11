@@ -446,3 +446,28 @@
   line-height: 1;
   cursor: pointer;
 }
+
+/* ── notice: a thin banner above a view ─────────────────────────── */
+.notice {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.notice--warn {
+  border-color: var(--gold);
+  background: var(--gold-wash);
+}
+.notice__details {
+  margin-top: var(--space-1);
+  color: var(--muted);
+}
+.notice__details ul {
+  margin: var(--space-1) 0 0;
+  padding-left: var(--space-4);
+  font-size: 12px;
+}

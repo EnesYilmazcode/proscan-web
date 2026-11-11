@@ -10,6 +10,7 @@ import { auth, googleProvider, USE_EMULATOR } from '../firebase';
 import Button from '../components/Button';
 import { RadarIcon } from '../components/EmptyState';
 import GoogleButton from './GoogleButton';
+import { MIN_PASSWORD } from './ExtensionPassword';
 import ScanBoard from './ScanBoard';
 import './auth.css';
 
@@ -46,7 +47,7 @@ function friendlyAuthError(err: unknown): string {
       case 'auth/email-already-in-use':
         return 'An account with this email already exists — sign in instead.';
       case 'auth/weak-password':
-        return 'Password must be at least 6 characters.';
+        return `Password must be at least ${MIN_PASSWORD} characters.`;
       case 'auth/too-many-requests':
         return 'Too many attempts. Wait a minute and try again.';
       case 'auth/network-request-failed':
@@ -141,8 +142,12 @@ export default function SignIn() {
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (busy || googleBusy) return;
-    setBusy(true);
     clearMessages();
+    if (mode === 'create' && password.length < MIN_PASSWORD) {
+      setError(`Password must be at least ${MIN_PASSWORD} characters.`);
+      return;
+    }
+    setBusy(true);
     try {
       if (mode === 'signin') {
         await signInWithEmailAndPassword(auth, email.trim(), password);
@@ -260,7 +265,7 @@ export default function SignIn() {
                   className="auth__input"
                   type={showPw ? 'text' : 'password'}
                   autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-                  placeholder={mode === 'create' ? 'At least 6 characters' : 'Enter your password'}
+                  placeholder={mode === 'create' ? `At least ${MIN_PASSWORD} characters` : 'Enter your password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required

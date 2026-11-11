@@ -1,31 +1,40 @@
-// Run Inbox (MVP feature 2) — the 30 most recent scrape-run headers as
-// instrument cards, newest first, grouped Today / This week / Earlier.
+// Run Inbox (MVP feature 2) — scrape-run headers as instrument cards,
+// newest first, 30 at a time, grouped Today / This week / Earlier.
 // Source names are joined client-side from the (tiny, sanctioned) sources
 // listener. Clicking a card opens the product board scoped to that
 // run's source: /?source=<sourceId>.
 
 import { Fragment, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSnapshotQuery, useWorkspace } from '../lib/hooks';
-import { runsRecent, sources } from '../lib/queries';
+import { useServerCount, useSnapshotQuery, useWorkspace } from '../lib/hooks';
+import { pagedTotal, usePagedQuery } from '../lib/paging';
+import { runsNewestFirst, sources } from '../lib/queries';
 import type { Source } from '../lib/types';
 import PageHeader from '../components/PageHeader';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
+import SchemaNotice from '../components/SchemaNotice';
 import Button from '../components/Button';
 import { CWS_URL } from '../auth/SignIn';
 import RunCard, { RunCardSkeleton } from '../features/runs/RunCard';
 import { groupRuns } from '../features/runs/groupRuns';
 import '../features/runs/runs.css';
+import '../features/board/board.css';
+
+const RUNS_PAGE = 30;
 
 export default function Runs() {
   const { wid } = useWorkspace();
   const navigate = useNavigate();
 
-  const runsState = useSnapshotQuery(
-    () => (wid ? runsRecent(wid, 30) : null),
+  const runsState = usePagedQuery(
+    () => (wid ? runsNewestFirst(wid) : null),
     [wid],
-    'runs:recent30',
+    RUNS_PAGE,
+  );
+  const total = pagedTotal(
+    runsState,
+    useServerCount(() => (wid ? runsNewestFirst(wid) : null), [wid], runsState.changes),
   );
   const sourcesState = useSnapshotQuery(
     () => (wid ? sources(wid) : null),
@@ -95,9 +104,25 @@ export default function Runs() {
     <>
       <PageHeader
         title="Runs"
-        subtitle="Your 30 most recent scrape runs — click one to open its products."
+        subtitle={
+          total === null
+            ? 'Your scrape runs, newest first. Click one to open its products.'
+            : `${total.toLocaleString('en-US')} ${total === 1 ? 'run' : 'runs'}, newest first. Click one to open its products.`
+        }
       />
+      <SchemaNotice invalid={[...runsState.invalid, ...sourcesState.invalid]} />
       {body}
+      {!loading && !runsState.error && runsState.hasMore ? (
+        <div className="board-more">
+          <Button variant="ghost" onClick={runsState.loadMore} disabled={runsState.loadingMore}>
+            {runsState.loadingMore ? 'Loading…' : `Load ${RUNS_PAGE} more`}
+          </Button>
+          <span className="board-more__count mono">
+            {runsState.data.length}
+            {total !== null ? ` of ${total}` : ''} loaded
+          </span>
+        </div>
+      ) : null}
     </>
   );
 }

@@ -1,6 +1,7 @@
-// Gold "Export XLSX" action for table views. Exports the already-loaded
-// rows via exportProductsXlsx (which dynamic-imports xlsx on first click).
-// Props contract is FROZEN: { rows, disabled? }.
+// Gold "Export XLSX" action for table views. `load` fetches the rows to
+// write, a page at a time when the scope is bigger than what is loaded,
+// then exportProductsXlsx writes them (it dynamic-imports xlsx on first
+// click). `count` is what the badge shows, when it is known up front.
 
 import { useEffect, useRef, useState } from 'react';
 import Button from '../../components/Button';
@@ -10,7 +11,8 @@ import { reportError } from '../../lib/errors';
 import './export.css';
 
 export interface ExportButtonProps {
-  rows: Product[];
+  load: (onProgress: (loaded: number) => void) => Promise<Product[]>;
+  count: number | null;
   disabled?: boolean;
 }
 
@@ -18,8 +20,10 @@ type Phase = 'idle' | 'working' | 'done';
 
 const CONFIRM_MS = 1500;
 
-export default function ExportButton({ rows, disabled }: ExportButtonProps) {
+export default function ExportButton({ load, count, disabled }: ExportButtonProps) {
   const [phase, setPhase] = useState<Phase>('idle');
+  const [progress, setProgress] = useState(0);
+  const [written, setWritten] = useState(0);
   const timerRef = useRef<number | null>(null);
   const mountedRef = useRef(true);
 
@@ -32,16 +36,21 @@ export default function ExportButton({ rows, disabled }: ExportButtonProps) {
   }, []);
 
   const handleClick = async () => {
-    if (phase === 'working' || rows.length === 0) return;
+    if (phase === 'working' || count === 0) return;
     if (timerRef.current !== null) {
       window.clearTimeout(timerRef.current);
       timerRef.current = null;
     }
     setPhase('working');
+    setProgress(0);
     try {
-      // Async-aware: the first click also awaits the xlsx chunk download.
+      const rows = await load((n) => {
+        if (mountedRef.current) setProgress(n);
+      });
+      if (rows.length === 0) throw new Error('nothing to export');
       await exportProductsXlsx(rows);
       if (!mountedRef.current) return;
+      setWritten(rows.length);
       setPhase('done');
       timerRef.current = window.setTimeout(() => {
         timerRef.current = null;
@@ -53,7 +62,8 @@ export default function ExportButton({ rows, disabled }: ExportButtonProps) {
     }
   };
 
-  const empty = rows.length === 0;
+  const empty = count === 0;
+  const fmt = (n: number) => n.toLocaleString('en-US');
 
   return (
     <Button
@@ -63,19 +73,21 @@ export default function ExportButton({ rows, disabled }: ExportButtonProps) {
       title={
         empty
           ? 'Nothing to export'
-          : `Export ${rows.length.toLocaleString('en-US')} rows to Excel`
+          : count === null
+            ? 'Export every matching product to Excel'
+            : `Export ${fmt(count)} rows to Excel`
       }
     >
       {phase === 'done' ? (
-        'Exported ✓'
+        `Exported ${fmt(written)} ✓`
       ) : (
         <>
-          {phase === 'working' ? 'Exporting…' : 'Export XLSX'}
-          {!empty && (
-            <span className="export-btn__count" aria-label={`${rows.length} rows`}>
-              {rows.length.toLocaleString('en-US')}
+          {phase === 'working' ? `Exporting… ${progress > 0 ? fmt(progress) : ''}` : 'Export XLSX'}
+          {phase !== 'working' && count !== null && !empty ? (
+            <span className="export-btn__count" aria-label={`${count} rows`}>
+              {fmt(count)}
             </span>
-          )}
+          ) : null}
         </>
       )}
     </Button>
