@@ -10,6 +10,8 @@ import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import Chip from '../../components/Chip';
 import Drawer from '../../components/Drawer';
 import EmptyState from '../../components/EmptyState';
+import ErrorState from '../../components/ErrorState';
+import { errorLabel } from '../../lib/errors';
 import KeyValue from '../../components/KeyValue';
 import Skeleton from '../../components/Skeleton';
 import Sparkline, { type SparklinePoint } from '../../components/Sparkline';
@@ -145,6 +147,8 @@ export default function HistoryDrawer({ wid, asin, onClose }: HistoryDrawerProps
     <Drawer title={<span className="mono">{asin}</span>} onClose={onClose}>
       {product.loading ? (
         <DrawerSkeleton />
+      ) : product.error ? (
+        <ErrorState title="Couldn't load this product" error={product.error} />
       ) : !p ? (
         <EmptyState
           title="Not tracked yet"
@@ -191,9 +195,10 @@ export default function HistoryDrawer({ wid, asin, onClose }: HistoryDrawerProps
             </div>
           </section>
 
-          {/* 2 · THE VERDICT BLOCK (signature) */}
-          <section className="hd-section">
-            {typeof maxBuy === 'number' && typeof spread?.md === 'number' ? (
+          {/* 2 · THE VERDICT BLOCK (signature). Hidden without spread data,
+              which nothing writes until Phase 5 (F-25). */}
+          {typeof maxBuy === 'number' && typeof spread?.md === 'number' ? (
+            <section className="hd-section">
               <div className="hd-verdict">
                 <p className="hd-verdict__sentence">
                   Buy below <span className="mono">{money(maxBuy)}</span> to clear{' '}
@@ -204,12 +209,8 @@ export default function HistoryDrawer({ wid, asin, onClose }: HistoryDrawerProps
                   MAX BUY {money(maxBuy)}
                 </span>
               </div>
-            ) : (
-              <div className="hd-verdict hd-verdict--empty">
-                Run a spread analysis in the extension to get a Max Buy price.
-              </div>
-            )}
-          </section>
+            </section>
+          ) : null}
 
           {/* 3 · price history */}
           <section className="hd-section">
@@ -223,6 +224,10 @@ export default function HistoryDrawer({ wid, asin, onClose }: HistoryDrawerProps
             </div>
             {history.loading ? (
               <Skeleton height={220} />
+            ) : history.error ? (
+              <div className="hd-error" role="alert">
+                Couldn't load history: {errorLabel(history.error)}
+              </div>
             ) : pricePointCount < 2 ? (
               <div className="hd-muted">History builds with each scan.</div>
             ) : (

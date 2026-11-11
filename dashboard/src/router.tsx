@@ -5,6 +5,7 @@ import Products from './routes/Products';
 import Runs from './routes/Runs';
 import Watchlist from './routes/Watchlist';
 import NotFound from './routes/NotFound';
+import RouteError from './routes/RouteError';
 
 // AuthGate wraps the shell: splash -> sign-in -> bootstrap -> app.
 // The Firebase Hosting rewrite sends every unknown /dashboard/* path into
@@ -17,6 +18,7 @@ export const router = createBrowserRouter(
           <Layout />
         </AuthGate>
       ),
+      errorElement: <RouteError />,
       children: [
         { index: true, element: <Products /> },
         { path: 'runs', element: <Runs /> },

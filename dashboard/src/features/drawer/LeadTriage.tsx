@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { appendEvent, leadStageUpdate } from '../../lib/queries';
 import { LEAD_STAGES, type LeadStage, type ProductLead } from '../../lib/types';
 import { leadFieldPatch } from './data';
+import { errorLabel, reportError } from '../../lib/errors';
 import './drawer.css';
 
 export const STAGE_LABELS: Record<LeadStage, string> = {
@@ -44,7 +45,10 @@ function useDebouncedSave(save: (value: string) => Promise<void>, delayMs = 600)
     saveRef
       .current(value)
       .then(() => setStatus('saved'))
-      .catch(() => setStatus('error'));
+      .catch((err: unknown) => {
+        setStatus('error');
+        reportError('save the lead note', err);
+      });
   }, []);
 
   const queue = useCallback(
@@ -127,10 +131,11 @@ export default function LeadTriage({
       appendEvent(wid, asin, { type: 'stageChange', from: prev, to: next }),
     ])
       .then(() => setBusy(false))
-      .catch(() => {
+      .catch((err: unknown) => {
+        console.error('[proscan] stage change failed', err);
         onStageChange(prev);
         setBusy(false);
-        setError('Stage change failed — check your connection and retry.');
+        setError(`Stage change failed: ${errorLabel(err)}`);
       });
   };
 

@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import Chip from '../../components/Chip';
 import Tag from '../../components/Tag';
 import { sourcePatch } from '../../lib/queries';
+import { reportError } from '../../lib/errors';
 import {
   compactNumber,
   relativeTime,
@@ -50,7 +51,7 @@ function identity(source: Source): string {
 }
 
 function logPatchError(err: unknown): void {
-  console.error('[proscan:watchlist] source patch failed', err);
+  reportError('save the watchlist change', err);
 }
 
 /* ── inline icons (16px, stroke = currentColor) ─────────────────── */
@@ -126,11 +127,13 @@ function WatchlistRow({
   wid,
   source,
   stale,
+  showCatalog,
   onOpen,
 }: {
   wid: string;
   source: Source;
   stale: Staleness;
+  showCatalog: boolean;
   onOpen: (sourceId: string) => void;
 }) {
   const watched = source.watched === true;
@@ -190,9 +193,11 @@ function WatchlistRow({
       <td className="mono wl-cell--id" title={ident}>
         {ident}
       </td>
-      <td className="mono wl-cell--num">
-        {compactNumber(source.catalogSize)}
-      </td>
+      {showCatalog ? (
+        <td className="mono wl-cell--num">
+          {compactNumber(source.catalogSize)}
+        </td>
+      ) : null}
       <td className="mono wl-cell--muted">
         {relativeTime(source.lastScrapedAt)}
       </td>
@@ -288,6 +293,9 @@ export default function WatchlistTable({ wid, sources }: WatchlistTableProps) {
     navigate(`/?source=${encodeURIComponent(sourceId)}`);
   };
 
+  // The extension does not write catalogSize yet (F-25); hide until it does.
+  const showCatalog = sources.some((s) => s.catalogSize !== undefined);
+
   return (
     <div className="wl-card">
       <table className="wl-table">
@@ -297,7 +305,7 @@ export default function WatchlistTable({ wid, sources }: WatchlistTableProps) {
             <th>Nickname</th>
             <th>Type</th>
             <th>Seller / keyword</th>
-            <th className="wl-cell--num">Catalog</th>
+            {showCatalog ? <th className="wl-cell--num">Catalog</th> : null}
             <th>Last scan</th>
             <th>Status</th>
             <th>Cadence</th>
@@ -312,6 +320,7 @@ export default function WatchlistTable({ wid, sources }: WatchlistTableProps) {
               wid={wid}
               source={source}
               stale={stale}
+              showCatalog={showCatalog}
               onOpen={openSource}
             />
           ))}

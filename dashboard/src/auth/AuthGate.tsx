@@ -1,10 +1,12 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
-import type { User } from 'firebase/auth';
-import { db } from '../firebase';
+import { signOut, type User } from 'firebase/auth';
+import { auth, db } from '../firebase';
 import { useAuthUser, WorkspaceProvider } from '../lib/hooks';
 import { DEFAULT_WORKSPACE_SETTINGS } from '../lib/types';
 import { RadarIcon } from '../components/EmptyState';
+import Button from '../components/Button';
+import ErrorState from '../components/ErrorState';
 import SignIn from './SignIn';
 import './auth.css';
 
@@ -59,11 +61,14 @@ async function bootstrapWorkspace(user: User): Promise<void> {
 }
 
 /** Wraps the whole app: splash while auth resolves, SignIn when signed out,
- *  bootstrap-then-children when signed in. Also mounts the single shared
- *  workspace listener (WorkspaceProvider). */
+ *  bootstrap-then-children when signed in. A failed bootstrap blocks with a
+ *  retry screen that can also sign out (the Sidebar isn't mounted yet).
+ *  Also mounts the single shared workspace listener. */
 export default function AuthGate({ children }: { children: ReactNode }) {
   const { user, loading } = useAuthUser();
   const [bootstrappedUid, setBootstrappedUid] = useState<string | null>(null);
+  const [bootError, setBootError] = useState<unknown>(null);
+  const [attempt, setAttempt] = useState(0);
 
   const uid = user?.uid ?? null;
 
@@ -73,22 +78,38 @@ export default function AuthGate({ children }: { children: ReactNode }) {
       return;
     }
     let cancelled = false;
+    setBootError(null);
     bootstrapWorkspace(user)
-      .catch((err) => {
-        // Non-fatal: the app degrades to live-query errors rather than a
-        // hard wall; first write retries on next sign-in.
-        console.error('[proscan] workspace bootstrap failed', err);
-      })
-      .finally(() => {
+      .then(() => {
         if (!cancelled) setBootstrappedUid(user.uid);
+      })
+      .catch((err) => {
+        console.error('[proscan] workspace bootstrap failed', err);
+        if (!cancelled) setBootError(err);
       });
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user, attempt]);
 
   if (loading) return <Splash />;
   if (!user || !uid) return <SignIn />;
+  if (bootError) {
+    return (
+      <div className="auth-splash">
+        <ErrorState
+          title="Couldn't set up your workspace"
+          error={bootError}
+          onRetry={() => setAttempt((n) => n + 1)}
+          extra={
+            <Button variant="ghost" onClick={() => void signOut(auth)}>
+              Sign out
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
   if (bootstrappedUid !== uid) return <Splash />;
 
   return <WorkspaceProvider uid={uid}>{children}</WorkspaceProvider>;

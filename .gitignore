@@ -13,6 +13,9 @@ dist/
 # Firebase cache
 .firebase/
 
+# Temp config written by scripts/emulators.mjs
+.firebase.emulators.json
+
 # Firebase emulator persisted data (npm run emulators:persist)
 .emulator-data/
 

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy · ProScan</title>
-    <meta name="description" content="How ProScan handles your data: what the extension reads, where your data lives, cloud sync, retention, and deletion.">
+    <meta name="description" content="What the ProScan extension reads, what it stores on your device, what the AI chat sends to Google Gemini, and how to delete your data.">
     <link rel="icon" href="/icon128.png">
     <style>
         :root {
@@ -114,110 +114,128 @@
         <div class="container">
             <p class="overline">ProScan · Legal</p>
             <h1>Privacy Policy</h1>
-            <p class="dates">Effective June 10, 2026 &middot; Last updated June 10, 2026</p>
+            <p class="dates">Applies to ProScan extension version 2.1 and this website &middot; Last updated September 24, 2026</p>
         </div>
     </div>
 
     <main class="container">
         <div class="summary">
             <span class="label">The short version</span>
-            <p>ProScan reads public Amazon product pages you choose to scan, in your own browser. Your data stays on your device unless you create an account and turn on cloud sync — and even then it is stored under your own account, used only for the features you see, and never sold, shared, or used for advertising. We never ask for your Amazon login.</p>
+            <p>The ProScan extension saves what it scans in your own browser. ProScan has no server that receives your scans. The one exception is the AI chat: if you add your own Google Gemini API key and ask a question, your question, the recent chat, what you scanned and a list of the products it found go straight from your browser to Google. Cloud sync is turned off in version 2.1. We never ask for your Amazon login, and we never sell your data.</p>
         </div>
 
         <article>
             <section>
                 <h2>Who we are</h2>
-                <p>ProScan is a browser extension and companion website that helps Amazon sellers with product research and storefront analytics. This policy explains what information ProScan handles when you use the extension and this website, and the choices you have. If anything here is unclear, email us at <a href="mailto:enesyilmaz5157@gmail.com">enesyilmaz5157@gmail.com</a>.</p>
+                <p>ProScan is a Chrome extension for Amazon product research, plus this website and a web dashboard. It is built and run by one developer, Enes Yilmaz. If anything here is unclear, email <a href="mailto:enesyilmaz5157@gmail.com">enesyilmaz5157@gmail.com</a>.</p>
             </section>
 
             <section>
-                <h2>What the ProScan extension reads</h2>
-                <p>The extension analyzes <strong>public Amazon product-listing pages that you are actively viewing</strong>. Every scan is started by you — ProScan does not crawl in the background or visit pages on your behalf. From those pages it reads listing details such as product titles, prices, offers, ratings, and seller storefront information, so it can show you research and analytics about the products you looked at.</p>
-                <p>The extension never reads or collects:</p>
+                <h2>What the extension reads from Amazon</h2>
+                <p>The extension only runs on amazon.com. It reads search result pages and seller storefront pages when you start a scan. For each product it saves:</p>
                 <ul>
-                    <li>Your Amazon username, password, or any other Amazon credentials.</li>
-                    <li>Anything from Seller Central or other logged-in seller account areas.</li>
-                    <li>Personal information about buyers or shoppers — no names, addresses, or order details.</li>
+                    <li>The title, ASIN, price, star rating, review count, Prime badge and product link.</li>
+                    <li>The time it was scanned.</li>
+                    <li>The page address you scanned, which includes your search keyword or the seller's ID.</li>
                 </ul>
+                <p>It does not read your Amazon account details, your orders, your addresses, your payment details, or anything in Seller Central. It does not collect personal information about buyers or sellers.</p>
             </section>
 
             <section>
-                <h2>Your data is local-first</h2>
-                <p>Today, everything the extension collects is stored <strong>in your own browser's extension storage, on your device</strong>. It is not sent to ProScan's servers. You can remove it at any time by clearing the extension's data or uninstalling the extension.</p>
-            </section>
-
-            <section>
-                <h2>Accounts and cloud sync</h2>
-                <p>When you create an account and enable cloud sync, two kinds of data are handled in the cloud:</p>
+                <h2>Pages the extension loads for you</h2>
+                <p>Every scan starts when you click the button. Once a scan is running, the extension does load Amazon pages on your behalf:</p>
                 <ul>
-                    <li><strong>Account data.</strong> Sign-in is handled by Firebase Authentication, a Google service. We receive your email address, or your Google account identity if you sign in with Google.</li>
-                    <li><strong>Synced research data.</strong> The product and pricing snapshots you collected are stored in Cloud Firestore under your own account.</li>
+                    <li><strong>Pagination.</strong> It moves your tab to the next page of results, one page after another, until it reaches the last page, the page limit, or you press Stop.</li>
+                    <li><strong>Price spread.</strong> If you run a price spread check, it requests the "other sellers" offer page on amazon.com for each product in your scan and saves the prices those sellers are asking.</li>
                 </ul>
-                <p>This data is used <strong>solely to power the user-facing dashboard features you see</strong> — your history, trends, and exports of your own data. It is <strong>never sold, never shared with third parties, and never used for advertising</strong>.</p>
+                <p>These requests go only to amazon.com. They are made from your browser, so they carry your normal Amazon cookies, exactly as if you had opened those pages yourself. Amazon sees them as your traffic. ProScan never reads, stores or sends those cookies. Nothing runs in the background when you are not scanning.</p>
             </section>
 
             <section>
-                <h2>Chrome Web Store Limited Use</h2>
-                <p>ProScan's use of information received from Google APIs and the data it collects complies with the Chrome Web Store User Data Policy, including the Limited Use requirements.</p>
-                <p>In plain terms: we only use your data to provide the features you can see and use yourself, and for nothing else.</p>
-            </section>
-
-            <section>
-                <h2>AI assistant (bring your own key)</h2>
-                <p>ProScan includes an optional AI chatbot. If you choose to supply your own Google Gemini API key:</p>
+                <h2>What is stored on your device</h2>
+                <p>The extension keeps its data in Chrome's local extension storage, on your computer. That includes:</p>
                 <ul>
-                    <li>Your chat prompts and product data from the page you are viewing are sent to <strong>Google's Gemini API under your own key</strong>.</li>
-                    <li>Your key is stored <strong>locally in your browser</strong>. ProScan's servers never receive your key or your conversations.</li>
-                    <li>Google's processing of requests made with your key is governed by Google's own terms, not ours.</li>
+                    <li>The products from your most recent scan, and the price spread results if you ran that check.</li>
+                    <li>The last price, rating and review count seen for each product, kept to compare against your next scan.</li>
+                    <li>Details about the current scan, such as the pages it has covered.</li>
+                    <li>Your settings, and your Gemini API key if you added one.</li>
                 </ul>
-                <p>If you never add a key, the chatbot sends nothing anywhere.</p>
+                <p>None of this is sent to ProScan. Starting a new scan replaces the previous scan's results. Exports (Excel, CSV and JSON) are saved as files in your downloads folder, and ProScan does not keep a copy anywhere else. Uninstalling the extension deletes everything it stored.</p>
             </section>
 
             <section>
-                <h2>How long we keep data</h2>
+                <h2>AI chat and Google Gemini</h2>
+                <p>The chat panel only works if you paste in your own Google Gemini API key. There is no built-in key. Without a key, the chat sends nothing.</p>
+                <p>With a key, each time you ask a question the extension sends this to Google's Gemini API:</p>
                 <ul>
-                    <li><strong>Raw scrape artifacts</strong> synced to the cloud (page snapshots and offer data) are automatically deleted 400 days after collection.</li>
-                    <li><strong>Free-plan history</strong> is retained for 30 days.</li>
-                    <li><strong>Local extension data</strong> stays on your device until you remove it.</li>
+                    <li>Your question.</li>
+                    <li>A list of products from your current scan: title, ASIN, price, rating, review count and Prime badge.</li>
+                    <li>What you scanned: the search keyword or seller storefront ID, and how many products the scan found.</li>
+                    <li>The last few questions and answers from this chat session, so Gemini can follow the conversation.</li>
+                    <li>Your API key, so Google knows which account the request belongs to.</li>
+                </ul>
+                <p>The request goes directly from your browser to Google. It does not pass through ProScan, and we never see your questions, the answers or your key. Google is the processor here, and its handling of the data is set by the Gemini API terms for your key. If your key is on Google's free tier, those terms let Google use what you send to improve its products. Your key stays in local extension storage until you remove it or uninstall ProScan.</p>
+            </section>
+
+            <section>
+                <h2>Accounts, the dashboard and cloud sync</h2>
+                <p><strong>In extension version 2.1, cloud sync is off.</strong> The extension does not sign in, does not upload scans, and does not talk to ProScan's database.</p>
+                <p>This website has a dashboard you can sign up for, with an email and password or with Google. Sign-in is handled by Firebase Authentication, a Google service. If you make an account, we store:</p>
+                <ul>
+                    <li>Your email address, a display name taken from your Google profile or your email, and when the account was created.</li>
+                    <li>Anything you type into the dashboard yourself, such as notes and lead stages on products.</li>
+                </ul>
+                <p>This lives in Cloud Firestore, a Google database, under your account. Other users cannot read it. We use it only to run the dashboard for you.</p>
+                <p>A later version of the extension will offer sync to the dashboard. It will be opt-in: nothing will upload unless you sign in to the extension with an account and turn sync on. We will update this page before that version ships, and it will say exactly what gets uploaded.</p>
+            </section>
+
+            <section>
+                <h2>How long data is kept</h2>
+                <ul>
+                    <li><strong>On your device:</strong> until a new scan replaces it, you remove it, or you uninstall the extension.</li>
+                    <li><strong>Dashboard accounts:</strong> until you ask us to delete the account. There is no automatic expiry.</li>
+                    <li><strong>Gemini requests:</strong> kept by Google according to the terms of your API key. ProScan keeps nothing.</li>
                 </ul>
             </section>
 
             <section>
                 <h2>Deleting your data</h2>
-                <p>To delete your account and any synced data, email <a href="mailto:enesyilmaz5157@gmail.com">enesyilmaz5157@gmail.com</a> from the address associated with your account and we will remove it. A self-serve "delete my account and all my data" option will ship before any paid plan launches.</p>
+                <p>To remove extension data, uninstall ProScan. To delete a dashboard account and everything stored under it, email <a href="mailto:enesyilmaz5157@gmail.com">enesyilmaz5157@gmail.com</a> from the address on the account, and we will delete it. There is no self-serve delete button yet.</p>
             </section>
 
             <section>
-                <h2>Security</h2>
+                <h2>Who else handles data</h2>
                 <ul>
-                    <li>Authentication is handled by Firebase, a Google service. If you sign in with Google, <strong>we never see or store your password</strong>.</li>
-                    <li><strong>We never request your Amazon credentials.</strong> No legitimate part of ProScan will ever ask for your Amazon login.</li>
-                    <li>Synced data is stored under your own account and is not accessible to other users.</li>
+                    <li><strong>Google Gemini API</strong>, for AI chat, only when you add your own key.</li>
+                    <li><strong>Google Firebase</strong> (Authentication, Firestore and Hosting), for this website and the dashboard.</li>
+                    <li><strong>Amazon</strong>, which receives the page requests your browser makes during a scan.</li>
                 </ul>
+                <p>We do not sell or rent data, share it with advertisers or data brokers, or use it for ads or credit decisions. This website runs no analytics or ad trackers.</p>
             </section>
 
             <section>
-                <h2>What we don't do</h2>
-                <ul>
-                    <li>We do not sell or rent your data — to anyone, ever.</li>
-                    <li>We do not show ads or use your data for advertising.</li>
-                    <li>This website does not run analytics scripts, advertising trackers, or third-party cookies.</li>
-                </ul>
+                <h2>Chrome Web Store Limited Use</h2>
+                <p>ProScan's use of the data it handles complies with the Chrome Web Store User Data Policy, including the Limited Use requirements. We use data only to provide the features you see, and no human reads it unless you ask us to, for example to help with a support request.</p>
+            </section>
+
+            <section>
+                <h2>Earlier versions</h2>
+                <p>Versions 2.0 and older had a built-in Gemini key owned by ProScan. On those versions, chat questions and the list of scanned products went to Google under that key. The key has since been revoked, so those versions can no longer send chat requests. Version 2.1 removes the built-in key.</p>
             </section>
 
             <section>
                 <h2>Children</h2>
-                <p>ProScan is a tool for sellers and is not directed to children. We do not knowingly collect personal information from anyone under 13.</p>
+                <p>ProScan is a tool for sellers and is not directed at children. We do not knowingly collect personal information from anyone under 13.</p>
             </section>
 
             <section>
                 <h2>Changes to this policy</h2>
-                <p>If we change this policy, we will post the updated version on this page and revise the date at the top. For material changes that affect account holders, we will take reasonable steps to notify you, such as a notice on this site or an email to your account address.</p>
+                <p>When ProScan starts handling data in a new way, this page will change first and the date at the top will move. If a change affects people with a dashboard account, we will also email them.</p>
             </section>
 
             <section>
                 <h2>Contact</h2>
-                <p>Questions, concerns, or deletion requests — we read every email.</p>
+                <p>Questions, concerns or deletion requests go to one inbox, and a person reads it.</p>
                 <p><a class="contact-cta" href="mailto:enesyilmaz5157@gmail.com">Email enesyilmaz5157@gmail.com</a></p>
             </section>
         </article>

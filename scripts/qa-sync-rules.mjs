@@ -5,8 +5,9 @@
 // Uses the firebase WEB SDK (NOT firebase-admin) so security rules are
 // ENFORCED on every call — admin bypasses rules and would prove nothing.
 //
-// Connects ONLY to the local emulator suite (auth 9099, firestore 8080).
-// Run:  node scripts/qa-sync-rules.mjs   (emulator must be up)
+// Connects ONLY to the local emulator suite. Hosts come from the variables
+// `firebase emulators:exec` sets, defaulting to auth 9099 / firestore 8080.
+// Run:  npm run test:rules
 
 import { initializeApp, deleteApp } from 'firebase/app';
 import {
@@ -29,8 +30,10 @@ import {
 const app = initializeApp({ projectId: 'demo-proscan', apiKey: 'demo-key' });
 const auth = getAuth(app);
 const db = getFirestore(app);
-connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
-connectFirestoreEmulator(db, '127.0.0.1', 8080);
+const AUTH_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1:9099';
+const [FS_HOST, FS_PORT] = (process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8080').split(':');
+connectAuthEmulator(auth, `http://${AUTH_HOST}`, { disableWarnings: true });
+connectFirestoreEmulator(db, FS_HOST, Number(FS_PORT));
 
 const results = [];
 const pass = (name, detail = '') => { results.push({ ok: true, name, detail }); console.log(`  PASS ${name}${detail ? ' — ' + detail : ''}`); };

@@ -57,30 +57,35 @@ function productsCol(wid: string) {
 
 /* ── product queries (ALWAYS scoped) ────────────────────────────────── */
 
+// Listener queries always pass a number. `null` drops the limit and is
+// only for getCountFromServer, which counts without reading documents.
+
 /** Per-source product board — the default table view.
  *  Index: products(sourceIds contains, latest.at desc). */
 export function productsBySource(
   wid: string,
   sourceId: string,
-  lim = 400,
+  lim: number | null = 400,
 ): Query<Product> {
-  return query(
+  const q = query(
     productsCol(wid),
     where('sourceIds', 'array-contains', sourceId),
     orderBy('latest.at', 'desc'),
-    limit(lim),
   );
+  return lim === null ? q : query(q, limit(lim));
 }
 
 /** Global Movers / Flip Radar: biggest price DROPS first (delta.pPct asc —
  *  most-negative = best buying opportunity). Single-field index. */
-export function topMovers(wid: string, lim = 100): Query<Product> {
-  return query(productsCol(wid), orderBy('delta.pPct', 'asc'), limit(lim));
+export function topMovers(wid: string, lim: number | null = 100): Query<Product> {
+  const q = query(productsCol(wid), orderBy('delta.pPct', 'asc'));
+  return lim === null ? q : query(q, limit(lim));
 }
 
 /** Most recently observed products across all sources. */
-export function recentProducts(wid: string, lim = 200): Query<Product> {
-  return query(productsCol(wid), orderBy('latest.at', 'desc'), limit(lim));
+export function recentProducts(wid: string, lim: number | null = 200): Query<Product> {
+  const q = query(productsCol(wid), orderBy('latest.at', 'desc'));
+  return lim === null ? q : query(q, limit(lim));
 }
 
 /* ── runs / sources ─────────────────────────────────────────────────── */

@@ -4,6 +4,7 @@
 
 import { useRef, useState, type KeyboardEvent } from 'react';
 import { sourcePatch } from '../../lib/queries';
+import { reportError } from '../../lib/errors';
 import type { Source } from '../../lib/types';
 import './watchlist.css';
 
@@ -30,8 +31,7 @@ export default function NicknameCell({ wid, source }: NicknameCellProps) {
     const next = draft.trim();
     if (next === (source.nickname ?? '')) return;
     sourcePatch(wid, source.sourceId, { nickname: next || null }).catch(
-      (err: unknown) =>
-        console.error('[proscan:watchlist] nickname patch failed', err),
+      (err: unknown) => reportError('save the nickname', err),
     );
   };
 

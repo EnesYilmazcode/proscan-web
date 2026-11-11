@@ -37,11 +37,29 @@ proscan-web/
 
 ```bash
 npm install            # one-time
-npm run dev            # local dev server with HMR
-npm run build          # build to dist/
-npm run preview        # serve the built dist/ locally
-npm run deploy         # build + firebase deploy --only hosting (project: proscanbot)
+npm run dev            # landing page dev server
+npm run dev:dashboard  # dashboard dev server, talks to the emulators
+npm run emulators      # auth + firestore + hosting emulators (project demo-proscan)
+npm run seed           # demo data into the running emulators
+npm run build          # clean dist/, then build landing + dashboard
+npm test               # typecheck, build, bundle check, rules tests
+npm run test:hosting   # rewrites and cache headers (Linux or WSL only)
+npm run deploy         # hosting + firestore rules + indexes to proscanbot
 ```
+
+The dashboard talks to the emulators in dev and to production in a build.
+`VITE_USE_EMULATOR=true` or `=false` overrides that at build time.
+
+Emulator ports come from `EMU_AUTH_PORT`, `EMU_FIRESTORE_PORT`,
+`EMU_HOSTING_PORT`, `EMU_UI_PORT`, `EMU_HUB_PORT` and `EMU_LOGGING_PORT`
+(defaults in `firebase.json`). `npm run test:rules` and `npm run emulators`
+both go through `scripts/emulators.mjs`, which applies them.
+
+Every build is stamped with its commit: `GET /version.json`, the
+`proscan-build` meta tag, or the sidebar footer in the dashboard. `deploy`
+refuses a dirty tree or a branch other than `main`, so the stamp always
+names a real commit. CI (`.github/workflows/ci.yml`) runs the same checks
+on every pull request.
 
 ## Revamp
 
