@@ -114,14 +114,14 @@
         <div class="container">
             <p class="overline">ProScan · Legal</p>
             <h1>Privacy Policy</h1>
-            <p class="dates">Applies to ProScan extension version 2.1 and this website &middot; Last updated September 24, 2026</p>
+            <p class="dates">Applies to ProScan extension version 2.4 and this website &middot; Last updated November 11, 2026</p>
         </div>
     </div>
 
     <main class="container">
         <div class="summary">
             <span class="label">The short version</span>
-            <p>The ProScan extension saves what it scans in your own browser. ProScan has no server that receives your scans. The one exception is the AI chat: if you add your own Google Gemini API key and ask a question, your question, the recent chat, what you scanned and a list of the products it found go straight from your browser to Google. Cloud sync is turned off in version 2.1. We never ask for your Amazon login, and we never sell your data.</p>
+            <p>The ProScan extension saves what it scans in your own browser. ProScan has no server that receives your scans. The one exception is the AI chat: if you add your own Google Gemini API key and ask a question, your question, the recent chat, what you scanned and a list of the products it found go straight from your browser to Google. Dashboard sync is optional: only if you sign in does the extension upload your scans to your own dashboard. We never ask for your Amazon login, and we never sell your data.</p>
         </div>
 
         <article>
@@ -153,14 +153,14 @@
 
             <section>
                 <h2>What is stored on your device</h2>
-                <p>The extension keeps its data in Chrome's local extension storage, on your computer. That includes:</p>
+                <p>The extension keeps its data in Chrome's local extension storage and the extension's own database (IndexedDB), on your computer. That includes:</p>
                 <ul>
                     <li>The products from your most recent scan, and the price spread results if you ran that check.</li>
                     <li>The last price, rating and review count seen for each product, kept to compare against your next scan.</li>
                     <li>Details about the current scan, such as the pages it has covered.</li>
                     <li>Your settings, and your Gemini API key if you added one.</li>
                 </ul>
-                <p>None of this is sent to ProScan. Starting a new scan replaces the previous scan's results. Exports (Excel, CSV and JSON) are saved as files in your downloads folder, and ProScan does not keep a copy anywhere else. Uninstalling the extension deletes everything it stored.</p>
+                <p>None of this is sent to ProScan unless you sign in to dashboard sync, described below. Starting a new scan replaces the previous scan's results. Exports (Excel, CSV and JSON) are saved as files in your downloads folder, and ProScan does not keep a copy anywhere else. Uninstalling the extension deletes everything it stored.</p>
             </section>
 
             <section>
@@ -179,21 +179,22 @@
 
             <section>
                 <h2>Accounts, the dashboard and cloud sync</h2>
-                <p><strong>In extension version 2.1, cloud sync is off.</strong> The extension does not sign in, does not upload scans, and does not talk to ProScan's database.</p>
-                <p>This website has a dashboard you can sign up for, with an email and password or with Google. Sign-in is handled by Firebase Authentication, a Google service. If you make an account, we store:</p>
+                <p><strong>Sync is off unless you sign in.</strong> The extension works fully without an account. If you choose to sign in, from the extension's Dashboard sync setting, your scans are uploaded to your own dashboard on this website.</p>
+                <p>You can sign in with Google or with an email and password. With Google, you pick your account on this website, and the website passes the sign-in to the extension so you do not type a password into it. Sign-in is handled by Firebase Authentication, a Google service.</p>
+                <p>When you have an account, we store:</p>
                 <ul>
                     <li>Your email address, a display name taken from your Google profile or your email, and when the account was created.</li>
+                    <li>While the extension is signed in, each scan: for every product, its title, ASIN, product link, image link, price, rating, review count, Prime badge, rank and sponsored flag, plus what you scanned (the search keyword or seller ID and page address), when, and how many pages.</li>
                     <li>Anything you type into the dashboard yourself, such as notes and lead stages on products.</li>
                 </ul>
-                <p>This lives in Cloud Firestore, a Google database, under your account. Other users cannot read it. We use it only to run the dashboard for you.</p>
-                <p>A later version of the extension will offer sync to the dashboard. It will be opt-in: nothing will upload unless you sign in to the extension with an account and turn sync on. We will update this page before that version ships, and it will say exactly what gets uploaded.</p>
+                <p>This lives in Cloud Firestore, a Google database, under your account. Other users cannot read it. We use it only to run the dashboard for you. Signing out of the extension stops new uploads. Your Gemini API key is never uploaded.</p>
             </section>
 
             <section>
                 <h2>How long data is kept</h2>
                 <ul>
                     <li><strong>On your device:</strong> until a new scan replaces it, you remove it, or you uninstall the extension.</li>
-                    <li><strong>Dashboard accounts:</strong> until you ask us to delete the account. There is no automatic expiry.</li>
+                    <li><strong>Dashboard accounts and synced scans:</strong> until you ask us to delete the account. There is no automatic expiry.</li>
                     <li><strong>Gemini requests:</strong> kept by Google according to the terms of your API key. ProScan keeps nothing.</li>
                 </ul>
             </section>
