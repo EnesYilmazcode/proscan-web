@@ -109,9 +109,7 @@ try {
   const failedPrice = (await getDoc(ws('products', asinOf(10)))).data();
   check('a price that failed to parse is not kept from last week', !('p' in failedPrice.latest));
   const both = (await getDoc(ws('products', asinOf(125)))).data();
-  // sync-plan.js names sourceIds in mergeFields, and a field in the mask is
-  // replaced, so arrayUnion keeps only the last source.
-  knownFailure('NEW-SYNC-1 (F-20 area): a product in two sources lists both', both.sourceIds.length === 2, JSON.stringify(both.sourceIds));
+  check('a product in two sources lists both (was NEW-SYNC-1)', both.sourceIds.length === 2, JSON.stringify(both.sourceIds));
   check('rank is written', Number.isInteger(moved.latest.rk), JSON.stringify(moved.latest));
 
   const header = (await getDoc(ws('runs', run2))).data();
