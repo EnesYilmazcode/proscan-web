@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
 import AuthGate from './auth/AuthGate';
+import Connect from './auth/Connect';
 import Layout from './shell/Layout';
 import Products from './routes/Products';
 import Runs from './routes/Runs';
@@ -12,6 +13,8 @@ import RouteError from './routes/RouteError';
 // this SPA, so the catch-all '*' route renders a proper not-found view.
 export const router = createBrowserRouter(
   [
+    // Outside AuthGate: it does its own Google sign-in and hands it to the extension.
+    { path: 'connect', element: <Connect />, errorElement: <RouteError /> },
     {
       element: (
         <AuthGate>
