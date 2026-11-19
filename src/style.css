@@ -402,3 +402,15 @@ footer .footer-links a:hover {
 #cta p {
     user-select: text;
 }
+
+/* Hero: the real recording fills the browser frame. */
+.browser-body.hero-video { padding: 0; overflow: hidden; background: #fff; }
+.browser-body.hero-video video { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; }
+@media (max-width: 900px) {
+    .hero-content-wrapper { flex-direction: column; }
+    .hero-mockup-container { width: 100%; }
+    .browser-mockup { width: 100%; max-width: 700px; }
+}
+@media (max-width: 600px) {
+    .nav-links a:not(.cta-button) { display: none; }
+}
