@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy · ProScan</title>
-    <meta name="description" content="What the ProScan extension reads, what it stores on your device, what the AI chat sends to Google Gemini, and how to delete your data.">
+    <meta name="description" content="What the ProScan extension reads, what it stores on your device, what the AI chat sends and where, and how to delete your data.">
     <link rel="icon" href="/icon128.png">
     <style>
         :root {
@@ -114,14 +114,14 @@
         <div class="container">
             <p class="overline">ProScan · Legal</p>
             <h1>Privacy Policy</h1>
-            <p class="dates">Applies to ProScan extension version 2.4 and this website &middot; Last updated November 11, 2026</p>
+            <p class="dates">Applies to ProScan extension version 2.5 and this website &middot; Last updated November 19, 2026</p>
         </div>
     </div>
 
     <main class="container">
         <div class="summary">
             <span class="label">The short version</span>
-            <p>The ProScan extension saves what it scans in your own browser. ProScan has no server that receives your scans. The one exception is the AI chat: if you add your own Google Gemini API key and ask a question, your question, the recent chat, what you scanned and a list of the products it found go straight from your browser to Google. Dashboard sync is optional: only if you sign in does the extension upload your scans to your own dashboard. We never ask for your Amazon login, and we never sell your data.</p>
+            <p>The ProScan extension saves what it scans in your own browser. ProScan has no server that receives your scans. The one exception is the AI chat: when you are signed in and ask a question, your question, the recent chat, what you scanned and a list of the products it found go to ProScan's chat server, which asks Amazon Bedrock (an AWS AI service) for the answer. Dashboard sync is optional: only if you sign in does the extension upload your scans to your own dashboard. We never ask for your Amazon login, and we never sell your data.</p>
         </div>
 
         <article>
@@ -158,23 +158,24 @@
                     <li>The products from your most recent scan, and the price spread results if you ran that check.</li>
                     <li>The last price, rating and review count seen for each product, kept to compare against your next scan.</li>
                     <li>Details about the current scan, such as the pages it has covered.</li>
-                    <li>Your settings, and your Gemini API key if you added one.</li>
+                    <li>Your settings, and a Gemini API key if you added one in an older version.</li>
                 </ul>
                 <p>None of this is sent to ProScan unless you sign in to dashboard sync, described below. Starting a new scan replaces the previous scan's results. Exports (Excel, CSV and JSON) are saved as files in your downloads folder, and ProScan does not keep a copy anywhere else. Uninstalling the extension deletes everything it stored.</p>
             </section>
 
             <section>
-                <h2>AI chat and Google Gemini</h2>
-                <p>The chat panel only works if you paste in your own Google Gemini API key. There is no built-in key. Without a key, the chat sends nothing.</p>
-                <p>With a key, each time you ask a question the extension sends this to Google's Gemini API:</p>
+                <h2>AI chat</h2>
+                <p>The chat is free and needs a ProScan sign-in. Signed out, it sends nothing. Each account can ask 20 questions a day.</p>
+                <p>Each time you ask a question, the extension sends this to ProScan's chat server:</p>
                 <ul>
                     <li>Your question.</li>
-                    <li>A list of products from your current scan: title, ASIN, price, rating, review count and Prime badge.</li>
-                    <li>What you scanned: the search keyword or seller storefront ID, and how many products the scan found.</li>
-                    <li>The last few questions and answers from this chat session, so Gemini can follow the conversation.</li>
-                    <li>Your API key, so Google knows which account the request belongs to.</li>
+                    <li>A list of up to 50 products from your current scan: title, ASIN, price, rating, review count and Prime badge.</li>
+                    <li>What you scanned: the search keyword or seller storefront name, and how many products the scan found.</li>
+                    <li>The last few questions and answers from this chat session, so the AI can follow the conversation.</li>
+                    <li>Your sign-in token, which the server checks to know the request is from a signed-in ProScan user.</li>
                 </ul>
-                <p>The request goes directly from your browser to Google. It does not pass through ProScan, and we never see your questions, the answers or your key. Google is the processor here, and its handling of the data is set by the Gemini API terms for your key. If your key is on Google's free tier, those terms let Google use what you send to improve its products. Your key stays in local extension storage until you remove it or uninstall ProScan.</p>
+                <p>The server runs on Amazon Web Services. It checks your sign-in, counts the question toward your daily limit, and sends the question and product list to Amazon Bedrock, which runs the AI model and returns the answer. ProScan does not store your questions or the answers; the server keeps only a count of questions per account per day, deleted after two days. Under Amazon Bedrock's terms, AWS does not use what is sent to train models.</p>
+                <p>If you added your own Gemini API key in an older version of ProScan, the extension still uses that key, and those questions go straight from your browser to Google under your key's terms.</p>
             </section>
 
             <section>
@@ -187,7 +188,7 @@
                     <li>While the extension is signed in, each scan: for every product, its title, ASIN, product link, image link, price, rating, review count, Prime badge, rank and sponsored flag, plus what you scanned (the search keyword or seller ID and page address), when, and how many pages.</li>
                     <li>Anything you type into the dashboard yourself, such as notes and lead stages on products.</li>
                 </ul>
-                <p>This lives in Cloud Firestore, a Google database, under your account. Other users cannot read it. We use it only to run the dashboard for you. Signing out of the extension stops new uploads. Your Gemini API key is never uploaded.</p>
+                <p>This lives in Cloud Firestore, a Google database, under your account. Other users cannot read it. We use it only to run the dashboard for you. Signing out of the extension stops new uploads. A Gemini API key, if you have one, is never uploaded.</p>
             </section>
 
             <section>
@@ -195,7 +196,7 @@
                 <ul>
                     <li><strong>On your device:</strong> until a new scan replaces it, you remove it, or you uninstall the extension.</li>
                     <li><strong>Dashboard accounts and synced scans:</strong> until you ask us to delete the account. There is no automatic expiry.</li>
-                    <li><strong>Gemini requests:</strong> kept by Google according to the terms of your API key. ProScan keeps nothing.</li>
+                    <li><strong>AI chat:</strong> ProScan keeps no questions or answers, only a per-account count of questions for each day, deleted after two days.</li>
                 </ul>
             </section>
 
@@ -207,7 +208,8 @@
             <section>
                 <h2>Who else handles data</h2>
                 <ul>
-                    <li><strong>Google Gemini API</strong>, for AI chat, only when you add your own key.</li>
+                    <li><strong>Amazon Web Services</strong> (AWS Lambda, DynamoDB and Amazon Bedrock), for the AI chat.</li>
+                    <li><strong>Google Gemini API</strong>, only if you added your own key in an older version.</li>
                     <li><strong>Google Firebase</strong> (Authentication, Firestore and Hosting), for this website and the dashboard.</li>
                     <li><strong>Amazon</strong>, which receives the page requests your browser makes during a scan.</li>
                 </ul>
