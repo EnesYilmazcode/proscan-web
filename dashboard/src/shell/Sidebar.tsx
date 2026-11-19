@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useAuthUser, useScanActivity } from '../lib/hooks';
-import { RadarIcon } from '../components/EmptyState';
+import { BrandLogo } from '../components/BrandLogo';
 import './shell.css';
 
 function ProductsGlyph() {
@@ -44,7 +44,7 @@ export default function Sidebar() {
       <div className="sidebar__brand">
         <span className="logo-mark">
           {scanning ? <span className="logo-mark__sweep" /> : null}
-          <RadarIcon size={26} />
+          <BrandLogo size={26} />
         </span>
         <span className="sidebar__wordmark">ProScan</span>
       </div>

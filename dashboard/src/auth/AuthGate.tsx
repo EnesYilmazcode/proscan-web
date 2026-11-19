@@ -4,7 +4,7 @@ import { signOut, type User } from 'firebase/auth';
 import { auth, db } from '../firebase';
 import { useAuthUser, WorkspaceProvider } from '../lib/hooks';
 import { DEFAULT_WORKSPACE_SETTINGS } from '../lib/types';
-import { RadarIcon } from '../components/EmptyState';
+import { BrandLogo } from '../components/BrandLogo';
 import Button from '../components/Button';
 import ErrorState from '../components/ErrorState';
 import SignIn from './SignIn';
@@ -14,7 +14,7 @@ function Splash() {
   return (
     <div className="auth-splash chrome-texture">
       <span className="auth-splash__mark">
-        <RadarIcon size={40} />
+        <BrandLogo size={40} />
       </span>
       <span className="auth__wordmark">ProScan</span>
     </div>

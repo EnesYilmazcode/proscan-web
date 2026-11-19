@@ -8,7 +8,7 @@ import {
 import { FirebaseError } from 'firebase/app';
 import { auth, googleProvider, USE_EMULATOR } from '../firebase';
 import Button from '../components/Button';
-import { RadarIcon } from '../components/EmptyState';
+import { BrandLogo } from '../components/BrandLogo';
 import GoogleButton from './GoogleButton';
 import { MIN_PASSWORD } from './ExtensionPassword';
 import ScanBoard from './ScanBoard';
@@ -66,7 +66,7 @@ function friendlyAuthError(err: unknown): string {
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <div className={compact ? 'auth__brand auth__brand--compact' : 'auth__brand'}>
-      <RadarIcon size={compact ? 24 : 30} />
+      <BrandLogo size={compact ? 24 : 30} />
       <span className="auth__wordmark">ProScan</span>
     </div>
   );

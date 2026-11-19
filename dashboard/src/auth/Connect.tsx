@@ -6,7 +6,7 @@ import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
 import { auth, googleProvider } from '../firebase';
 import { pickExtensionId, sendHandoff } from '../lib/handoff';
-import { RadarIcon } from '../components/EmptyState';
+import { BrandLogo } from '../components/BrandLogo';
 import GoogleButton from './GoogleButton';
 import './auth.css';
 
@@ -59,7 +59,7 @@ export default function Connect() {
     <div className="auth-solo chrome-texture">
       <div className="auth__panel">
         <div className="auth__brand">
-          <RadarIcon size={28} />
+          <BrandLogo size={28} />
           <span className="auth__wordmark">ProScan</span>
         </div>
         {!extId ? (
